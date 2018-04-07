@@ -1,0 +1,6 @@
+
+Our project allows users to draw and edit graphics, similar to Microsoft Paint. Our project utilizes Tkinter and an algorithm that tracks the user's mouse movemnts, placing a series of dots to simulate a line as the user draws. The user is able to choose between various different colors by clicking a button on the sidebar. Our program also has a fill function that fills the inside of a surface, buttons to adjust line width, a save and load function, and an erase function. To use this project, simply install from the Github link and make sure an updated version of tKinter can be used to run the program.
+
+Thank you so much for checking out our project!
+
+William Cen (wcen), Shawn Liu (shawnliu)
