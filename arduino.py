@@ -245,7 +245,7 @@ def changeColor(color, data):
     
 def changeFunction(function, data):
     data.function = function
-    print(data.function)
+    #print(data.function)
     if data.functions[data.function] == "pen":
         data.color = data.temp
     
