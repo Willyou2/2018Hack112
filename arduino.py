@@ -26,7 +26,8 @@ def init(data):
     data.colors = ["black", "red", "blue", "green", "yellow", "purple", "brown", "white"]
     data.functions = ["pointer", "pen", "fill", "erase", "thicker", "thinner", "save", "load", "clear"]
     data.rectWidth = data.width // 10
-    data.rectHeight = data.height // len(data.colors)
+    data.rectHeight = data.height // len(data.functions)
+    data.functHeight = data.height // len(data.functions)
     data.board = []
     data.cellWidth = 10
     for i in range(data.height):
@@ -228,7 +229,7 @@ def redrawAll(canvas, data):
     #if data.functions[data.function] == "save":
     #    tkSimpleDialog.askstring(title, prompt [initialvalue])\
     if data.count == 0:
-        canvas.create_image(0,0, anchor = NW, image = data.title)
+        #canvas.create_image(0,0, anchor = NW, image = data.title)
         data.count += 1
 
     if data.functions[data.function] == "erase" and data.pressed:
@@ -292,7 +293,7 @@ def drawButtons(canvas, data):
     data.functionButtons = [None]*len(data.functions)
     for num in range(len(data.functions)):
         button1 = Button(canvas, text = data.functions[num],anchor = CENTER)
-        button1.configure(width = data.rectWidth//8,height=data.rectHeight//15,
+        button1.configure(width = data.rectWidth//8,height=data.functHeight//15,
                           activebackground = "#33B5E5")
         data.functionButtons[num]=(button1)
     data.functionButtons[0].configure(command=lambda:changeFunction(0,data))
@@ -306,7 +307,7 @@ def drawButtons(canvas, data):
     data.functionButtons[8].configure(command=lambda:clear(canvas,data))
     for num in range(len(data.functionButtons)):
         data.functionButtons[num].place(x=data.width-2*data.rectWidth,
-                                        y=data.rectHeight*num)
+                                        y=data.functHeight*num)
         
                            
 def timerFired(canvas, data):
@@ -395,4 +396,4 @@ def run(width=300, height=300):
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
-run(500,700)
+run(500,500)
