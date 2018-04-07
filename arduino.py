@@ -1,4 +1,5 @@
 from tkinter import *
+from math import *
 
 ####################################
 # customize these functions
@@ -12,35 +13,76 @@ root = Tk()
 # data is a Struct, which can be given new data values using data.name = value
 # data will be shared across all animation functions- it's aliased!
 def init(data):
+    data.radius = 5 #radius of our eraser
     # data comes preset with width and height, from the run function
-    data.color = "black"
-    data.function = "pen"
-    data.points = []
-    data.cursor = (data.width/2, data.height/2)
+    data.color = 0
+    data.function = 0
+    data.cursor = (data.width//2, data.height//2)
     data.pressed = False
-    data.colors = ["black", "red", "blue", "green", "yellow", "purple", "brown"]
-    data.functions = ["pointer", "pen", "fill", "erase", "save"]
+    data.colors = ["black", "red", "blue", "green", "yellow", "purple", "brown", "white"]
+    data.functions = ["pointer", "pen", "fill", "erase", "thicker", "thinner", "save"]
     data.rectWidth = data.width // 10
     data.rectHeight = data.height // len(data.colors)
-    data.temp = "black"
+    data.board = []
+    data.cellWidth = 10
+    for i in range(data.height):
+        data.board += [[7]*((data.width))]
+    data.temp = 0
     
 def pen(data):
+    x = data.cursor[0]
+    y = data.cursor[1]
+    #print(data.color)
     if data.pressed:
-        data.points.append(data.cursor)
+        for i in range(data.radius//2):
+            for j in range(int(2*pi)):
+                if 0 <= int(y+i*sin(j)) < data.height and 0 <= int(x+i*cos(j)) < data.width:
+                    data.board[int(y+i*sin(j))][int(x+i*cos(j))] = data.color
+    #print(data.board)
+       # data.board[int(data.cursor[1])][int(data.cursor[0])] = data.color
 
 def erase(data):
+    data.color = 7
+    x = data.cursor[0]
+    y = data.cursor[1]
+    #print(data.color)
     if data.pressed:
-        data.color = "white"
-        pen(data)
-        
+        for i in range(data.radius):
+            for j in range(int(2*pi)):
+                if 0 <= int(y+i*sin(j)) < data.height and 0 <= int(x+i*cos(j)) < data.width:
+                    data.board[int(y+i*sin(j))][int(x+i*cos(j))] = data.color
+    #print(data.board)
+
+def thicken(data):
+    if data.radius + 2 < 21:
+        data.radius += 2
+
+def thin(data):
+    if data.radius - 2 >0:
+        data.radius -= 2
+'''def fill(data):
+    smallest = []
+    lst = giveListOfBiggerX(data)
+    for i in range(lst):'''
+
+
 def motion(event, data):
-    data.cursor = (event.x, event.y)
+    data.cursor = (root.winfo_pointerx()-root.winfo_rootx(), \
+        root.winfo_pointery()-root.winfo_rooty())
+    #print(data.cursor)
     
 def mousePressed(event, data):
     data.pressed = True
     
 def mouseReleased(event, data):
     data.pressed = False
+
+'''def giveListOfBiggerX(data):
+    lst = []
+    for point in range(data.points):
+        if point[0] >= data.cursor:
+            lst += [point]
+    return lst'''
 
 # Track and respond to key presses
 # The event variable holds all of the data captured by the event loop
@@ -57,17 +99,17 @@ def keyPressed(event, data):
 # Also, the canvas will get cleared and this will be called again
 # constantly by the event loop.
 def redrawAll(canvas, data):
-    if len(data.points)>=1:
-        if data.color == "white":
-            #canvas.create_oval(data.cursor[0]-10, data.cursor[1]-10, 
-            #                   data.cursor[0]+10, data.cursor[1]+10)
-            canvas.create_oval(data.points[-1][0]-10,data.points[-1][1]-10,
-                           data.points[-1][0]+10,data.points[-1][1]+10,
-                           fill=data.color, width = 0)
-        else:
-            canvas.create_oval(data.points[-1][0]-5,data.points[-1][1]-5,
-                           data.points[-1][0]+5,data.points[-1][1]+5,
-                           fill=data.color, width = 0)
+    if data.functions[data.function] == "erase" and data.pressed:
+        #canvas.create_oval(data.cursor[0]-10, data.cursor[1]-10, 
+        #                   data.cursor[0]+10, data.cursor[1]+10)
+        x1,y1 = data.cursor[0]-data.radius, data.cursor[1]-data.radius
+        x2,y2 = data.cursor[0]+data.radius, data.cursor[1]+data.radius
+        canvas.create_oval(x1,y1,x2,y2, fill=data.colors[7], width = 0)
+
+    elif data.functions[data.function] == "pen" and data.pressed:
+        x1,y1 = data.cursor[0]-data.radius/2, data.cursor[1]-data.radius/2
+        x2,y2 = data.cursor[0]+data.radius/2, data.cursor[1]+data.radius/2
+        canvas.create_oval(x1, y1, x2, y2, fill=data.colors[data.color], width = 0)
                            
 def changeColor(color, data):
     data.color = color
@@ -75,7 +117,7 @@ def changeColor(color, data):
     
 def changeFunction(function, data):
     data.function = function
-    if data.function == "pen":
+    if data.functions[data.function] == "pen":
         data.color = data.temp
     
 def drawButtons(canvas, data):
@@ -85,14 +127,14 @@ def drawButtons(canvas, data):
         button1.configure(width = data.rectWidth//8,height=data.rectHeight//15, 
                           activebackground = "#33B5E5")
         data.colorButtons[num]=(button1)
-    data.colorButtons[0].configure(command=lambda:changeColor(data.colors[0],data))
-    data.colorButtons[1].configure(command=lambda:changeColor(data.colors[1],data))
-    data.colorButtons[2].configure(command=lambda:changeColor(data.colors[2],data))
-    data.colorButtons[3].configure(command=lambda:changeColor(data.colors[3],data))
-    data.colorButtons[4].configure(command=lambda:changeColor(data.colors[4],data))
-    data.colorButtons[5].configure(command=lambda:changeColor(data.colors[5],data))
-    data.colorButtons[6].configure(command=lambda:changeColor(data.colors[6],data))
-    for num in range(len(data.colorButtons)):
+    data.colorButtons[0].configure(command=lambda:changeColor(0,data))
+    data.colorButtons[1].configure(command=lambda:changeColor(1,data))
+    data.colorButtons[2].configure(command=lambda:changeColor(2,data))
+    data.colorButtons[3].configure(command=lambda:changeColor(3,data))
+    data.colorButtons[4].configure(command=lambda:changeColor(4,data)) 
+    data.colorButtons[5].configure(command=lambda:changeColor(5,data))
+    data.colorButtons[6].configure(command=lambda:changeColor(6,data))
+    for num in range(len(data.colorButtons)-1):
         data.colorButtons[num].place(x=data.width-data.rectWidth,
                                      y=data.rectHeight*num)
     data.functionButtons = [None]*len(data.functions)
@@ -101,11 +143,13 @@ def drawButtons(canvas, data):
         button1.configure(width = data.rectWidth//8,height=data.rectHeight//15,
                           activebackground = "#33B5E5")
         data.functionButtons[num]=(button1)
-    data.functionButtons[0].configure(command=lambda:changeFunction(data.functions[0],data))
-    data.functionButtons[1].configure(command=lambda:changeFunction(data.functions[1],data))
-    data.functionButtons[2].configure(command=lambda:changeFunction(data.functions[2],data))
-    data.functionButtons[3].configure(command=lambda:changeFunction(data.functions[3],data))
-    data.functionButtons[4].configure(command=lambda:changeFunction(data.functions[4],data))
+    data.functionButtons[0].configure(command=lambda:changeFunction(0,data))
+    data.functionButtons[1].configure(command=lambda:changeFunction(1,data))
+    data.functionButtons[2].configure(command=lambda:changeFunction(2,data))
+    data.functionButtons[3].configure(command=lambda:changeFunction(3,data))
+    data.functionButtons[4].configure(command=lambda:thicken(data))
+    data.functionButtons[5].configure(command=lambda:thin(data))
+    data.functionButtons[6].configure(command=lambda:changeFunction(6,data))
     for num in range(len(data.functionButtons)):
         data.functionButtons[num].place(x=data.width-2*data.rectWidth,
                                         y=data.rectHeight*num)
@@ -114,11 +158,11 @@ def drawButtons(canvas, data):
 def timerFired(canvas, data):
     x = root.winfo_pointerx()
     y = root.winfo_pointery()
-    data.cursor = (root.winfo_pointerx()-root.winfo_rootx(), 
-                   root.winfo_pointery()-root.winfo_rooty())
-    if data.function == "pen":
+    #data.cursor = (root.winfo_pointerx()-root.winfo_rootx(), 
+    #               root.winfo_pointery()-root.winfo_rooty())
+    if data.functions[data.function] == "pen":
         pen(data)
-    if data.function == "erase":
+    if data.functions[data.function] == "erase":
         erase(data)
     
 ####################################
