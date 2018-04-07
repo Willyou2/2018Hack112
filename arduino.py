@@ -1,5 +1,8 @@
 from tkinter import *
 from math import *
+import string
+from PIL import Image, ImageDraw, ImageTk
+#import tkSimpleDialog
 
 ####################################
 # customize these functions
@@ -20,7 +23,7 @@ def init(data):
     data.cursor = (data.width//2, data.height//2)
     data.pressed = False
     data.colors = ["black", "red", "blue", "green", "yellow", "purple", "brown", "white"]
-    data.functions = ["pointer", "pen", "fill", "erase", "thicker", "thinner", "save"]
+    data.functions = ["pointer", "pen", "fill", "erase", "thicker", "thinner", "save", "load"]
     data.rectWidth = data.width // 10
     data.rectHeight = data.height // len(data.colors)
     data.board = []
@@ -28,7 +31,9 @@ def init(data):
     for i in range(data.height):
         data.board += [[7]*((data.width))]
     data.temp = 0
-    
+    data.colorCode = [(0,0,0), (255,0,0), (0,0,255), (0,128,0), (255,255,0), (128,0,128), (165,42,42), (255,255,255)]#[(1,1,1), (170,39,31), (25,8,146), (36,107,31), (227,244,106), (95,24,100), (120,59,74), (255,255,255)] #Drawing red in PIL is different from generic red
+    data.filename = "Example.jpg"
+
 def pen(data):
     x = data.cursor[0]
     y = data.cursor[1]
@@ -58,21 +63,107 @@ def thicken(data):
         data.radius += 2
 
 def thin(data):
-    if data.radius - 2 >0:
+    if data.radius - 2 > 0:
         data.radius -= 2
-'''def fill(data):
-    smallest = []
-    lst = giveListOfBiggerX(data)
-    for i in range(lst):'''
 
+def save(data):
+    '''filename = open("Example.txt","w")'''
+    '''for i in range(len(data.board)):
+        for j in range(len(data.board[0])):
+            if j != len(data.board[0])-1:
+                filename.write(str(data.board[i][j]) + ",")
+            else:
+                filename.write(str(data.board[i][j]))
+            #filename.write("hi!")
+        if i != len(data.board)-1:
+            filename.write('|\n')
+    filename.close()'''
+    image1 = Image.new("RGB", (data.width, data.height), 'white')
+    draw = ImageDraw.Draw(image1)
+    for i in range(len(data.board)):
+        for j in range(len(data.board[0])):
+            draw.point([(j,i)], fill = data.colors[data.board[i][j]])
+    image1.save(data.filename)
+
+def readFile(path):
+    with open(path, "rt") as f:
+        return f.read()
+
+def load(canvas, data):
+    '''
+    filename = readFile("Example.txt")
+    temp = []
+    #print(filename)
+    #print(type(filename))
+    for row in range(len(filename.split("|"))): #The split function is way to laggy because of the huge amount of data we are looking at
+        a = []
+        for col in range(len((filename.split('|')[row]).split(","))):
+            value = int(filename.split('|')[row].split(',')[col])
+            canvas.create_oval(row,col, row+1, col + 1, fill = data.colors[value], width = 0)
+            a += [int(value)]
+        temp += [a]
+    data.board = temp
+    #except:
+    #    print("Invalid File")
+    '''
+    image = Image.open(data.filename)
+    photo = ImageTk.PhotoImage(image)
+    canvas.create_image(0,0, anchor = NW, image = photo)
+    img = Image.open(data.filename).convert("RGB")
+    pix = img.load()
+    for i in range(len(data.board)):
+        for j in range(len(data.board[0])):
+            data.board[i][j] = data.colorCode.index(pix[j,i])
+            #if pix[j,i] in data.colorCode:
+            '''minVal = 100
+            mini = (255,255,255)
+            for k in data.colorCode:
+                if pix[j,i][0] - k[0] + pix[j,i][1] - k[1] + pix[j,i][2] - k[2] < minVal:
+                    mini = k
+                    minVal = pix[j,i][0] - k[0] + pix[j,i][1] - k[1] + pix[j,i][2] - k[2]
+            data.board[i][j] = data.colorCode.index(mini)'''
+            #print(pix[i,j])
+    
+
+'''def saveFile(canvas, data):
+    name = StringVar()
+    entry_box = Entry(root, textvariable=name, width = 25, bg='white').place(x=data.width//2, y=data.height//2)
+    saver = Button(root, text = "Save", width = 30, height = 30, bg = 'lightblue', command=save).place(x=data.width//2, y=data.height*2//3)'''
+def fill(canvas, data, x, y):
+    #"hidden" stop clause - not reinvoking for "c" or "b", only for "a"
+    if x==0 or y==0 or x==len(data.board)-1 or y==len(data.board[x])-1:
+        return
+    if data.board[x][y]!=7 or data.board[x-1][y-1]!=7 or data.board[x-1][y+1]!=7 or data.board[x+1][y-1]!=7 or data.board[x+1][y+1]!=7:
+        return
+    if data.board[x][y] == 7:
+        data.board[x][y] = data.color
+        data.board[x+1][y]=data.color
+        data.board[x-1][y]=data.color
+        data.board[x][y+1]=data.color
+        data.board[x][y-1]=data.color
+        canvas.create_rectangle(y-1,x-1,y+2,x+2,fill=data.colors[data.board[x][y]], width=0)
+        #recursively invoke flood fill on all surrounding cells:
+        if x > 0:
+            fill(canvas, data,x-2,y)
+        if x < len(data.board[y])-1:
+            fill(canvas, data,x+2,y)
+        if y > 0:
+            fill(canvas, data,x,y-2)
+        if y < len(data.board)-1:
+            fill(canvas, data,x,y+2)
 
 def motion(event, data):
     data.cursor = (root.winfo_pointerx()-root.winfo_rootx(), \
         root.winfo_pointery()-root.winfo_rooty())
     #print(data.cursor)
     
-def mousePressed(event, data):
+def mousePressed(canvas, event, data):
+    if event.x>data.width-2*data.rectWidth:
+        print("no")
+        return
     data.pressed = True
+    if data.function == 2:
+        fill(canvas, data, event.y, event.x)
     
 def mouseReleased(event, data):
     data.pressed = False
@@ -99,6 +190,8 @@ def keyPressed(event, data):
 # Also, the canvas will get cleared and this will be called again
 # constantly by the event loop.
 def redrawAll(canvas, data):
+    #if data.functions[data.function] == "save":
+    #    tkSimpleDialog.askstring(title, prompt [initialvalue])
     if data.functions[data.function] == "erase" and data.pressed:
         #canvas.create_oval(data.cursor[0]-10, data.cursor[1]-10, 
         #                   data.cursor[0]+10, data.cursor[1]+10)
@@ -149,7 +242,8 @@ def drawButtons(canvas, data):
     data.functionButtons[3].configure(command=lambda:changeFunction(3,data))
     data.functionButtons[4].configure(command=lambda:thicken(data))
     data.functionButtons[5].configure(command=lambda:thin(data))
-    data.functionButtons[6].configure(command=lambda:changeFunction(6,data))
+    data.functionButtons[6].configure(command=lambda:save(data))
+    data.functionButtons[7].configure(command=lambda:load(canvas,data))
     for num in range(len(data.functionButtons)):
         data.functionButtons[num].place(x=data.width-2*data.rectWidth,
                                         y=data.rectHeight*num)
@@ -164,11 +258,19 @@ def timerFired(canvas, data):
         pen(data)
     if data.functions[data.function] == "erase":
         erase(data)
+    #if data.functions[data.function] == "save":
+    #    saveFile(canvas, data)
     
 ####################################
 # use the run function as-is
 ####################################
 def run(width=300, height=300):
+    '''def printtext():
+        
+        name = StringVar()
+        string = name.get()
+        print(string)
+        print('hi')'''
     def redrawAllWrapper(canvas, data):
         #canvas.delete(ALL)
         #canvas.create_rectangle(0, 0, data.width, data.height,
@@ -182,7 +284,7 @@ def run(width=300, height=300):
         redrawAllWrapper(canvas, data)
         
     def mousePressedWrapper(event, canvas, data):
-        mousePressed(event, data)
+        mousePressed(canvas, event, data)
         redrawAllWrapper(canvas, data)
         
     def mouseReleasedWrapper(event, canvas, data):
@@ -198,7 +300,6 @@ def run(width=300, height=300):
         redrawAllWrapper(canvas, data)
         # pause, then call timerFired again
         canvas.after(data.timerDelay, timerFiredWrapper, canvas, data)
-
     # Set up data and call init
     class Struct(object): pass
     data = Struct()
@@ -222,7 +323,15 @@ def run(width=300, height=300):
                                 fill='white', width=0)
     timerFiredWrapper(canvas, data)
     drawButtons(canvas, data)
+    #print(data.function)
     # and launch the app
+    '''name = StringVar()
+    e = Entry(root)
+    e.pack()
+    e.focus_set()
+
+    b = Button(root,text='okay',command=printtext)
+    b.pack(side='bottom')'''
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
