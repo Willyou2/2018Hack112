@@ -24,7 +24,7 @@ def init(data):
     data.cursor = (data.width//2, data.height//2)
     data.pressed = False
     data.colors = ["black", "red", "blue", "green", "yellow", "purple", "brown", "white"]
-    data.functions = ["pointer", "pen", "fill", "erase", "thicker", "thinner", "save", "load"]
+    data.functions = ["pointer", "pen", "fill", "erase", "thicker", "thinner", "save", "load", "clear"]
     data.rectWidth = data.width // 10
     data.rectHeight = data.height // len(data.colors)
     data.board = []
@@ -35,6 +35,9 @@ def init(data):
     data.colorCode = [(0,0,0), (255,0,0), (0,0,255), (0,128,0), (255,255,0), (128,0,128), (165,42,42), (255,255,255)]#[(1,1,1), (170,39,31), (25,8,146), (36,107,31), (227,244,106), (95,24,100), (120,59,74), (255,255,255)] #Drawing red in PIL is different from generic red
     data.filename = "Example.jpg"
     data.previousText = "Selected: " + data.functions[data.function].upper() + " " + "Color: " + data.colors[data.color].upper() + " " + str(data.radius//2)
+    image = Image.open("Title.jpg")
+    data.title = ImageTk.PhotoImage(image)
+    data.count = 0
 
 def pen(data):
     x = data.cursor[0]
@@ -177,6 +180,14 @@ def fill(canvas, data, x, y):
         if y < len(data.board)-1:
             fill(canvas, data,x,y+2)
 
+def clearBoard(canvas, data):
+    data.board = []
+    for i in range(data.height):
+        data.board += [[7]*((data.width))]
+    canvas.delete(ALL)
+    canvas.create_rectangle(0, 0, data.width, data.height,\
+                                fill='white', width=0)
+
 def motion(event, data):
     data.cursor = (root.winfo_pointerx()-root.winfo_rootx(), \
         root.winfo_pointery()-root.winfo_rooty())
@@ -215,7 +226,11 @@ def keyPressed(event, data):
 # constantly by the event loop.
 def redrawAll(canvas, data):
     #if data.functions[data.function] == "save":
-    #    tkSimpleDialog.askstring(title, prompt [initialvalue])
+    #    tkSimpleDialog.askstring(title, prompt [initialvalue])\
+    if data.count == 0:
+        canvas.create_image(0,0, anchor = NW, image = data.title)
+        data.count += 1
+
     if data.functions[data.function] == "erase" and data.pressed:
         #canvas.create_oval(data.cursor[0]-10, data.cursor[1]-10, 
         #                   data.cursor[0]+10, data.cursor[1]+10)
@@ -288,6 +303,7 @@ def drawButtons(canvas, data):
     data.functionButtons[5].configure(command=lambda:thin(data))
     data.functionButtons[6].configure(command=lambda:save(data))
     data.functionButtons[7].configure(command=lambda:load(canvas,data))
+    data.functionButtons[8].configure(command=lambda:clearBoard(canvas,data))
     for num in range(len(data.functionButtons)):
         data.functionButtons[num].place(x=data.width-2*data.rectWidth,
                                         y=data.rectHeight*num)
@@ -379,4 +395,4 @@ def run(width=300, height=300):
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
-run(500,500)
+run(500,700)
