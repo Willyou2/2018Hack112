@@ -178,8 +178,7 @@ def motion(event, data):
     #print(data.cursor)
     
 def mousePressed(canvas, event, data):
-    if event.x>data.width-2*data.rectWidth:
-        print("no")
+    if root.winfo_pointerx()-root.winfo_rootx()>data.width-2*data.rectWidth:
         return
     data.pressed = True
     if data.function == 2:
