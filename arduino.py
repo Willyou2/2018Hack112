@@ -7,6 +7,7 @@ from math import *
 
 
 root = Tk()
+sys.setrecursionlimit(490000)
 
 # Set up the model data with init
 # init is called once, at the beginning of the program
@@ -52,6 +53,29 @@ def erase(data):
                 if 0 <= int(y+i*sin(j)) < data.height and 0 <= int(x+i*cos(j)) < data.width:
                     data.board[int(y+i*sin(j))][int(x+i*cos(j))] = data.color
     #print(data.board)
+    
+def fill(canvas, data, x, y):
+    #"hidden" stop clause - not reinvoking for "c" or "b", only for "a"
+    if x==0 or y==0 or x==len(data.board)-1 or y==len(data.board[x])-1:
+        return
+    if data.board[x][y]!=7 or data.board[x-1][y-1]!=7 or data.board[x-1][y+1]!=7 or data.board[x+1][y-1]!=7 or data.board[x+1][y+1]!=7:
+        return
+    if data.board[x][y] == 7:
+        data.board[x][y] = data.color
+        data.board[x+1][y]=data.color
+        data.board[x-1][y]=data.color
+        data.board[x][y+1]=data.color
+        data.board[x][y-1]=data.color
+        canvas.create_rectangle(y-1,x-1,y+2,x+2,fill=data.colors[data.board[x][y]], width=0)
+        #recursively invoke flood fill on all surrounding cells:
+        if x > 0:
+            fill(canvas, data,x-2,y)
+        if x < len(data.board[y])-1:
+            fill(canvas, data,x+2,y)
+        if y > 0:
+            fill(canvas, data,x,y-2)
+        if y < len(data.board)-1:
+            fill(canvas, data,x,y+2)
 
 def thicken(data):
     if data.radius + 2 < 21:
@@ -71,8 +95,13 @@ def motion(event, data):
         root.winfo_pointery()-root.winfo_rooty())
     #print(data.cursor)
     
-def mousePressed(event, data):
+def mousePressed(canvas, event, data):
+    if event.x>data.width-2*data.rectWidth:
+        print("no")
+        return
     data.pressed = True
+    if data.function == 2:
+        fill(canvas, data, event.y, event.x)
     
 def mouseReleased(event, data):
     data.pressed = False
@@ -110,6 +139,22 @@ def redrawAll(canvas, data):
         x1,y1 = data.cursor[0]-data.radius/2, data.cursor[1]-data.radius/2
         x2,y2 = data.cursor[0]+data.radius/2, data.cursor[1]+data.radius/2
         canvas.create_oval(x1, y1, x2, y2, fill=data.colors[data.color], width = 0)
+        
+    #elif data.functions[data.function] == "fill" and data.pressed:
+        # x,y=data.cursor[0],data.cursor[1]
+        # toBeFilled = {(x, y)}
+        # while toBeFilled:
+        #     tbf = set()
+        #     for x, y in toBeFilled:
+        #         try:
+        #             if data.board[x][y] == 7: continue #Pixel is already 1 -> no action
+        #         except IndexError: continue #Index is out of bounds
+        #         canvas.create_rectangle(x-1,y-1,x+1,y+1,fill=data.colors[data.color])
+        #         for xoff, yoff in ((1, -1), (1, 0), (1, 1), (0, -1), (0, 1), (-1, -1), (-1, 0), (-1, 1)):
+        #             tbf |= {(x + xoff, y + yoff)} #add adjacent pixels
+        #     toBeFilled = tbf
+                    
+
                            
 def changeColor(color, data):
     data.color = color
@@ -117,6 +162,7 @@ def changeColor(color, data):
     
 def changeFunction(function, data):
     data.function = function
+    print(data.function)
     if data.functions[data.function] == "pen":
         data.color = data.temp
     
@@ -182,7 +228,7 @@ def run(width=300, height=300):
         redrawAllWrapper(canvas, data)
         
     def mousePressedWrapper(event, canvas, data):
-        mousePressed(event, data)
+        mousePressed(canvas, event, data)
         redrawAllWrapper(canvas, data)
         
     def mouseReleasedWrapper(event, canvas, data):
