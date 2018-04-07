@@ -303,7 +303,7 @@ def drawButtons(canvas, data):
     data.functionButtons[5].configure(command=lambda:thin(data))
     data.functionButtons[6].configure(command=lambda:save(data))
     data.functionButtons[7].configure(command=lambda:load(canvas,data))
-    data.functionButtons[8].configure(command=lambda:clearBoard(canvas,data))
+    data.functionButtons[8].configure(command=lambda:clear(canvas,data))
     for num in range(len(data.functionButtons)):
         data.functionButtons[num].place(x=data.width-2*data.rectWidth,
                                         y=data.rectHeight*num)
