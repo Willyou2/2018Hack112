@@ -34,6 +34,7 @@ def init(data):
     data.temp = 0
     data.colorCode = [(0,0,0), (255,0,0), (0,0,255), (0,128,0), (255,255,0), (128,0,128), (165,42,42), (255,255,255)]#[(1,1,1), (170,39,31), (25,8,146), (36,107,31), (227,244,106), (95,24,100), (120,59,74), (255,255,255)] #Drawing red in PIL is different from generic red
     data.filename = "Example.jpg"
+    data.previousText = "Selected: " + data.functions[data.function].upper() + " " + "Color: " + data.colors[data.color].upper() + " " + str(data.radius//2)
 
 def pen(data):
     x = data.cursor[0]
@@ -105,9 +106,9 @@ def save(data):
             draw.point([(j,i)], fill = data.colors[data.board[i][j]])
     image1.save(data.filename)
 
-def readFile(path):
+'''def readFile(path):
     with open(path, "rt") as f:
-        return f.read()
+        return f.read()'''
 
 def load(canvas, data):
     '''
@@ -126,23 +127,27 @@ def load(canvas, data):
     #except:
     #    print("Invalid File")
     '''
-    image = Image.open(data.filename)
-    photo = ImageTk.PhotoImage(image)
-    canvas.create_image(0,0, anchor = NW, image = photo)
-    img = Image.open(data.filename).convert("RGB")
-    pix = img.load()
+    try:
+        image = Image.open(data.filename)
+        photo = ImageTk.PhotoImage(image)
+        canvas.create_image(0,0, anchor = NW, image = photo)
+        img = Image.open(data.filename).convert("RGB")
+        pix = img.load()
+    except:
+        print("Error, file not Found")
     for i in range(len(data.board)):
         for j in range(len(data.board[0])):
             data.board[i][j] = data.colorCode.index(pix[j,i])
-            #if pix[j,i] in data.colorCode:
-            '''minVal = 100
-            mini = (255,255,255)
-            for k in data.colorCode:
-                if pix[j,i][0] - k[0] + pix[j,i][1] - k[1] + pix[j,i][2] - k[2] < minVal:
-                    mini = k
-                    minVal = pix[j,i][0] - k[0] + pix[j,i][1] - k[1] + pix[j,i][2] - k[2]
-            data.board[i][j] = data.colorCode.index(mini)'''
-            #print(pix[i,j])
+        
+    #if pix[j,i] in data.colorCode:
+    '''minVal = 100
+    mini = (255,255,255)
+    for k in data.colorCode:
+        if pix[j,i][0] - k[0] + pix[j,i][1] - k[1] + pix[j,i][2] - k[2] < minVal:
+            mini = k
+            minVal = pix[j,i][0] - k[0] + pix[j,i][1] - k[1] + pix[j,i][2] - k[2]
+    data.board[i][j] = data.colorCode.index(mini)'''
+    #print(pix[i,j])
     
 
 '''def saveFile(canvas, data):
@@ -222,6 +227,9 @@ def redrawAll(canvas, data):
         x1,y1 = data.cursor[0]-data.radius/2, data.cursor[1]-data.radius/2
         x2,y2 = data.cursor[0]+data.radius/2, data.cursor[1]+data.radius/2
         canvas.create_oval(x1, y1, x2, y2, fill=data.colors[data.color], width = 0)
+    #canvas.create_text(5, data.height, anchor = SW, text = data.previousText, fill = "white", width = 0)
+    #canvas.create_text(5,data.height, anchor = SW, text = "Selected: " + data.functions[data.function].upper() + " " + "Color: " + data.colors[data.color].upper() + " " + str(data.radius//2), width = 0)
+    #data.previousText = "Selected: " + data.functions[data.function].upper() + " " + "Color: " + data.colors[data.color].upper() + " " + str(data.radius//2)
         
     #elif data.functions[data.function] == "fill" and data.pressed:
         # x,y=data.cursor[0],data.cursor[1]
@@ -371,4 +379,4 @@ def run(width=300, height=300):
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
-run(300, 300)
+run(500,500)
