@@ -58,24 +58,20 @@ def fill(canvas, data, x, y):
     #"hidden" stop clause - not reinvoking for "c" or "b", only for "a"
     if x==0 or y==0 or x==len(data.board)-1 or y==len(data.board[x])-1:
         return
-    if data.board[x][y]!=7 or data.board[x-1][y-1]!=7 or data.board[x-1][y+1]!=7 or data.board[x+1][y-1]!=7 or data.board[x+1][y+1]!=7:
+    if data.board[x][y]!=7:
         return
     if data.board[x][y] == 7:
         data.board[x][y] = data.color
-        data.board[x+1][y]=data.color
-        data.board[x-1][y]=data.color
-        data.board[x][y+1]=data.color
-        data.board[x][y-1]=data.color
-        canvas.create_rectangle(y-1,x-1,y+2,x+2,fill=data.colors[data.board[x][y]], width=0)
+        canvas.create_rectangle(y,x,y+1,x+1,fill=data.colors[data.board[x][y]], width=0)
         #recursively invoke flood fill on all surrounding cells:
         if x > 0:
-            fill(canvas, data,x-2,y)
+            fill(canvas, data, x-1, y)
         if x < len(data.board[y])-1:
-            fill(canvas, data,x+2,y)
+            fill(canvas, data,x+1,y)
         if y > 0:
-            fill(canvas, data,x,y-2)
+            fill(canvas, data,x,y-1)
         if y < len(data.board)-1:
-            fill(canvas, data,x,y+2)
+            fill(canvas, data,x,y+1)
 
 def thicken(data):
     if data.radius + 2 < 21:
@@ -101,7 +97,7 @@ def mousePressed(canvas, event, data):
         return
     data.pressed = True
     if data.function == 2:
-        fill(canvas, data, event.y, event.x)
+        fill(canvas, data, int(event.y), int(event.x))
     
 def mouseReleased(event, data):
     data.pressed = False
@@ -272,4 +268,4 @@ def run(width=300, height=300):
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
-run(700, 700)
+run(300, 300)
