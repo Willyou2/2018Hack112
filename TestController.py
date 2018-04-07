@@ -9,6 +9,23 @@ from tkinter import *
 from inputs import get_gamepad
 from inputs import get_key
 from inputs import get_mouse
+import msvcrt
+import time
+
+def raw_input_with_timeout(prompt, timeout=3):
+    finishat = time.time() + timeout
+    result = []
+    while True:
+        if msvcrt.kbhit():
+            result.append(msvcrt.getche())
+            if result[-1] == '\r':   # or \n, whatever Win returns;-)
+                return ''.join(result)
+            time.sleep(0.1)          # just to yield to other processes/threads
+        else:
+            if time.time() > finishat:
+                return None
+raw_input_with_timeout(get_gamepad())
+
 '''
 while 1:
 	events = get_gamepad()
@@ -30,6 +47,12 @@ while 1:
 
 def init(data):
 	data.clicked = False
+	data.pointer = [data.width//2, data.height//2]
+	data.velocity = [0,0]
+	filename = "cursor.gif"
+	data.photo = PhotoImage(file=filename)
+	data.Xmoving = False
+	data.Ymoving = False
 
 def mousePressed(event,data):
 	print("blah blah blah") 
@@ -48,20 +71,52 @@ def timerFired(data):
 def redrawAll(canvas, data):
 	if data.clicked:
 		canvas.create_rectangle(0,0,data.width,data.height, fill = "black")
+	canvas.create_image(data.pointer[0], data.pointer[1], anchor = NW, image = data.photo)
+
+
+def cancer(data):
+	events = get_gamepad()
+	for a in events:
+		if a in events:
+			cancer(data)
+	return None
 
 def gamepad(data):
 	events = get_gamepad()
 	for a in events:
+		print(a.code)
 		if a.code == "BTN_SOUTH" and a.state == 1:
 			data.clicked = True
 			print("hello!")
 		elif a.code == "BTN_SOUTH" and a.state == 0:
 			data.clicked = False
-		
+		elif a.code == "BTN_SELECT" and a.state == 1:
+			exit()
+		print(a.code, a.state)
+		if a.code == "ABS_X":
+			data.velocity[0] = a.state/10000
+			#data.pointer[0] += a.state/10000
+			#data.Xmoving = True
+
+		#elif a.code == "ABS_X" and a.state == 0:
+			
+			#data.Xmoving = False
+
+		if a.code == "ABS_Y":
+			#data.pointer[1] -= a.state/10000
+			data.velocity[1] = a.state/10000
+
+		#elif a.code == "ABS_Y" and a.state == 0:
+			#data.Ymoving = False
+		print(data.velocity)
+		#if data.Xmoving:
+
 		
 	'''events = get_mouse()
 	for event in events:
 		print(event.ev_type, event.code, event.state)'''
+	data.pointer[0] += data.velocity[0]
+	data.pointer[1] -= data.velocity[1]
 
 
 def run(width=300, height=300):
@@ -89,7 +144,7 @@ def run(width=300, height=300):
         timerFired(data)
         redrawAllWrapper(canvas, data)
         # pause, then call timerFired again
-        canvas.after(data.timerDelay, timerFiredWrapper, canvas, data)
+        canvas.after(1, timerFiredWrapper, canvas, data)
 
     # Set up data and call init
     class Struct(object): pass
@@ -97,19 +152,20 @@ def run(width=300, height=300):
     data.width = width
     data.height = height
     data.timerDelay = 1000 # milliseconds
+    root = Tk()
     init(data)
     # create the root and the canvas
-    root = Tk()
+    
     canvas = Canvas(root, width=data.width, height=data.height)
     canvas.pack()
     # set up events
-    #root.bind("<Button-1>", lambda event:
+   	#root.bind("<Button-1>", lambda event:
     #                        mousePressedWrapper(event, canvas, data))
     #root.bind("<Key>", lambda event:
     #                        keyPressedWrapper(event, canvas, data))
     timerFiredWrapper(canvas, data)
     # and launch the app
-
+    #root.bind("BTN_SOUTH", lambda event: gamepadWrapper(event, canvas, data))
     gamepadWrapper(canvas, data)
     root.mainloop()  # blocks until window is closed
     print("bye!")
