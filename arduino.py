@@ -58,7 +58,7 @@ def erase(data):
     y = data.cursor[1]
     #print(data.color)
     if data.pressed:
-        for i in range(data.radius):
+        for i in range(data.radius): #The issue with this is that you are looping through integer values for radius and theta, so you dont really reach all boxes. This is evident by the fact that your values are stars
             for j in range(int(2*pi)):
                 if 0 <= int(y+i*sin(j)) < data.height and 0 <= int(x+i*cos(j)) < data.width:
                     data.board[int(y+i*sin(j))][int(x+i*cos(j))] = data.color
@@ -304,7 +304,7 @@ def drawButtons(canvas, data):
     data.functionButtons[5].configure(command=lambda:thin(data))
     data.functionButtons[6].configure(command=lambda:save(data))
     data.functionButtons[7].configure(command=lambda:load(canvas,data))
-    data.functionButtons[8].configure(command=lambda:clear(canvas,data))
+    data.functionButtons[8].configure(command=lambda:clearBoard(canvas,data))
     for num in range(len(data.functionButtons)):
         data.functionButtons[num].place(x=data.width-2*data.rectWidth,
                                         y=data.functHeight*num)
