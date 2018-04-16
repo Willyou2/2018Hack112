@@ -30,8 +30,9 @@ def init(data):
     data.functHeight = data.height // len(data.functions)
     data.board = []
     data.cellWidth = 10
-    for i in range(data.height):
-        data.board += [[7]*((data.width))]
+    #IF FLOODFILL FAILS JUST ADJUST THE HEIGHT BACK TO REGULAR
+    for i in range(data.height+1): #+1 because the board pixels go from 0 to 500, so there needs to be a 500th cell
+        data.board += [[7]*((data.width-data.rectWidth//4))] #-data.rectWidth//4 because 2times the width of the rectangles. Change later when you configure it properly
     data.temp = 0
     data.colorCode = [(0,0,0), (255,0,0), (0,0,255), (0,128,0), (255,255,0), (128,0,128), (165,42,42), (255,255,255)]#[(1,1,1), (170,39,31), (25,8,146), (36,107,31), (227,244,106), (95,24,100), (120,59,74), (255,255,255)] #Drawing red in PIL is different from generic red
     data.filename = "Example.jpg"
@@ -39,6 +40,7 @@ def init(data):
     image = Image.open("Title.jpg")
     data.title = ImageTk.PhotoImage(image)
     data.count = 0
+    data.colorFill = data.color #If you select a box to fill, the color of the pixel is what it will check for your box to be equal to
 
 def pen(data):
     x = data.cursor[0]
@@ -64,24 +66,24 @@ def erase(data):
                     data.board[int(y+i*sin(j))][int(x+i*cos(j))] = data.color
     #print(data.board)
     
-def fill(canvas, data, x, y):
+'''def fill(canvas, data, x, y):
     #"hidden" stop clause - not reinvoking for "c" or "b", only for "a"
-    if x==0 or y==0 or x==len(data.board)-1 or y==len(data.board[x])-1:
+    if x<=0 or y<=0 or x==len(data.board)-1 or y==len(data.board[x])-1:
         return
-    if data.board[x][y]!=7:
+    if data.board[x][y]!=data.colorFill:
         return
-    if data.board[x][y] == 7:
+    if data.board[x][y] == data.colorFill:
         data.board[x][y] = data.color
         canvas.create_rectangle(y,x,y+1,x+1,fill=data.colors[data.board[x][y]], width=0)
         #recursively invoke flood fill on all surrounding cells:
-        if x > 0:
-            fill(canvas, data, x-1, y)
-        if x < len(data.board[y])-1:
-            fill(canvas, data,x+1,y)
-        if y > 0:
-            fill(canvas, data,x,y-1)
-        if y < len(data.board)-1:
-            fill(canvas, data,x,y+1)
+        #if x > 0:
+        fill(canvas, data, x-1, y)
+        #if x < len(data.board[y])-1:
+        fill(canvas, data,x+1,y)
+        #if y > 0:
+        fill(canvas, data,x,y-1)
+        #if y < len(data.board)-1:
+        fill(canvas, data,x,y+1)'''
 
 def thicken(data):
     if data.radius + 2 < 21:
@@ -160,26 +162,31 @@ def load(canvas, data):
     saver = Button(root, text = "Save", width = 30, height = 30, bg = 'lightblue', command=save).place(x=data.width//2, y=data.height*2//3)'''
 def fill(canvas, data, x, y):
     #"hidden" stop clause - not reinvoking for "c" or "b", only for "a"
-    if x==0 or y==0 or x==len(data.board)-1 or y==len(data.board[x])-1:
+    if x<=0 or y<=0 or x>=len(data.board)-1 or y>=len(data.board[x]):
         return
-    if data.board[x][y]!=7 or data.board[x-1][y-1]!=7 or data.board[x-1][y+1]!=7 or data.board[x+1][y-1]!=7 or data.board[x+1][y+1]!=7:
+    if data.board[x][y]!=data.colorFill or data.board[x-1][y-1]!= data.colorFill or data.board[x-1][y+1]!=data.colorFill or data.board[x+1][y-1]!=data.colorFill or data.board[x+1][y+1]!=data.colorFill:
         return
-    if data.board[x][y] == 7:
+    if data.board[x][y] == data.colorFill:
         data.board[x][y] = data.color
         data.board[x+1][y]=data.color
         data.board[x-1][y]=data.color
         data.board[x][y+1]=data.color
         data.board[x][y-1]=data.color
         canvas.create_rectangle(y-1,x-1,y+2,x+2,fill=data.colors[data.board[x][y]], width=0)
+        #canvas.create_rectangle(y,x,y+1,x+1,fill=data.colors[data.board[x][y]], width=0)
         #recursively invoke flood fill on all surrounding cells:
-        if x > 0:
-            fill(canvas, data,x-2,y)
-        if x < len(data.board[y])-1:
-            fill(canvas, data,x+2,y)
-        if y > 0:
-            fill(canvas, data,x,y-2)
-        if y < len(data.board)-1:
-            fill(canvas, data,x,y+2)
+        #if x > 0: 
+        fill(canvas, data,x-2,y)
+        #if x < len(data.board[y])-1:
+        fill(canvas, data,x+2,y)
+        #if y > 0:
+        fill(canvas, data,x,y-2)
+        #if y < len(data.board)-1:
+        fill(canvas, data,x,y+2)
+        #Notes: Shawn's fill function works better than mine which is by changing everything to not fill x-2 but rather x-1 and commenting out the above if statements of like data.board[x-1][y-1]!= data.colorFill
+        #This is either efficiency reason or because there are gaps in the object when i fill in a space no matter how thick (cuz pixels are small af)
+        #To fix this, try to make the draw function properly hit every pixel 
+
 
 def clearBoard(canvas, data):
     data.board = []
@@ -199,7 +206,10 @@ def mousePressed(canvas, event, data):
         return
     data.pressed = True
     if data.function == 2:
-        fill(canvas, data, int(event.y), int(event.x))
+        print(event.x, event.y)
+        data.colorFill = data.board[event.y][event.x]
+        
+        fill(canvas, data, int(event.y), int(event.x)) #Ask shawn why he passed event.y then event.x instead of the other way around
     
 def mouseReleased(event, data):
     data.pressed = False
@@ -235,6 +245,7 @@ def redrawAll(canvas, data):
     if data.functions[data.function] == "erase" and data.pressed:
         #canvas.create_oval(data.cursor[0]-10, data.cursor[1]-10, 
         #                   data.cursor[0]+10, data.cursor[1]+10)
+
         x1,y1 = data.cursor[0]-data.radius, data.cursor[1]-data.radius
         x2,y2 = data.cursor[0]+data.radius, data.cursor[1]+data.radius
         canvas.create_oval(x1,y1,x2,y2, fill=data.colors[7], width = 0)
@@ -313,6 +324,7 @@ def drawButtons(canvas, data):
 def timerFired(canvas, data):
     x = root.winfo_pointerx()
     y = root.winfo_pointery()
+    #print(x,y)
     #data.cursor = (root.winfo_pointerx()-root.winfo_rootx(), 
     #               root.winfo_pointery()-root.winfo_rooty())
     if data.functions[data.function] == "pen":

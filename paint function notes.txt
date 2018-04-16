@@ -1,0 +1,3 @@
+Notes on paint function:
+
+Remember when loading to make sure each pixel is drawn as a circle of the pixels surrounding it
