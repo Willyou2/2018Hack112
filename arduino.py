@@ -17,7 +17,7 @@ sys.setrecursionlimit(490000)
 # data is a Struct, which can be given new data values using data.name = value
 # data will be shared across all animation functions- it's aliased!
 def init(data):
-    data.radius = 5 #radius of our eraser
+    data.radius = 5 #radius of our eraser, which is 2 times the radius of the pen
     # data comes preset with width and height, from the run function
     data.color = 0
     data.function = 0
@@ -42,15 +42,33 @@ def init(data):
     data.count = 0
     data.colorFill = data.color #If you select a box to fill, the color of the pixel is what it will check for your box to be equal to
 
+def fillDot(data, row, col, center): #Center is a tuple that is constant
+    centerBox = (row+0.5, col + 0.5) #Finds center of current box
+    dist = (centerBox[0]-center[0])**2 + (centerBox[1]-center[1])**2
+    if row <= 0 or col <= 0 or row >= len(data.board)-1 or col >= len(data.board[row]):
+        return
+    elif data.board[row][col] == data.color:
+        return
+    elif dist > 0.25*data.radius**2: #0.25 because radius is radius of eraser
+        return
+    else:
+        data.board[row][col] = data.color
+        fillDot(data, row+1, col, center)
+        fillDot(data, row-1, col, center)
+        fillDot(data, row, col + 1, center)
+        fillDot(data, row, col - 1, center)
+
+
 def pen(data):
-    x = data.cursor[0]
-    y = data.cursor[1]
+    row = data.cursor[1]
+    col = data.cursor[0]
     #print(data.color)
     if data.pressed:
-        for i in range(data.radius//2):
+        '''for i in range(data.radius//2):
             for j in range(int(2*pi)):
                 if 0 <= int(y+i*sin(j)) < data.height and 0 <= int(x+i*cos(j)) < data.width:
-                    data.board[int(y+i*sin(j))][int(x+i*cos(j))] = data.color
+                    data.board[int(y+i*sin(j))][int(x+i*cos(j))] = data.color'''
+        fillDot(data, row, col, (row+0.5, col+0.5))
     #print(data.board)
        # data.board[int(data.cursor[1])][int(data.cursor[0])] = data.color
 
@@ -164,25 +182,25 @@ def fill(canvas, data, x, y):
     #"hidden" stop clause - not reinvoking for "c" or "b", only for "a"
     if x<=0 or y<=0 or x>=len(data.board)-1 or y>=len(data.board[x]):
         return
-    if data.board[x][y]!=data.colorFill or data.board[x-1][y-1]!= data.colorFill or data.board[x-1][y+1]!=data.colorFill or data.board[x+1][y-1]!=data.colorFill or data.board[x+1][y+1]!=data.colorFill:
+    if data.board[x][y]!=data.colorFill:# or data.board[x-1][y-1]!= data.colorFill or data.board[x-1][y+1]!=data.colorFill or data.board[x+1][y-1]!=data.colorFill or data.board[x+1][y+1]!=data.colorFill:
         return
     if data.board[x][y] == data.colorFill:
         data.board[x][y] = data.color
-        data.board[x+1][y]=data.color
-        data.board[x-1][y]=data.color
-        data.board[x][y+1]=data.color
-        data.board[x][y-1]=data.color
-        canvas.create_rectangle(y-1,x-1,y+2,x+2,fill=data.colors[data.board[x][y]], width=0)
-        #canvas.create_rectangle(y,x,y+1,x+1,fill=data.colors[data.board[x][y]], width=0)
+        #data.board[x+1][y]=data.color
+        #data.board[x-1][y]=data.color
+        #data.board[x][y+1]=data.color
+        #data.board[x][y-1]=data.color
+        #canvas.create_rectangle(y-1,x-1,y+2,x+2,fill=data.colors[data.board[x][y]], width=0)
+        canvas.create_rectangle(y,x,y+1,x+1,fill=data.colors[data.board[x][y]], width=0)
         #recursively invoke flood fill on all surrounding cells:
         #if x > 0: 
-        fill(canvas, data,x-2,y)
+        fill(canvas, data,x-1,y)
         #if x < len(data.board[y])-1:
-        fill(canvas, data,x+2,y)
+        fill(canvas, data,x+1,y)
         #if y > 0:
-        fill(canvas, data,x,y-2)
+        fill(canvas, data,x,y-1)
         #if y < len(data.board)-1:
-        fill(canvas, data,x,y+2)
+        fill(canvas, data,x,y+1)
         #Notes: Shawn's fill function works better than mine which is by changing everything to not fill x-2 but rather x-1 and commenting out the above if statements of like data.board[x-1][y-1]!= data.colorFill
         #This is either efficiency reason or because there are gaps in the object when i fill in a space no matter how thick (cuz pixels are small af)
         #To fix this, try to make the draw function properly hit every pixel 
