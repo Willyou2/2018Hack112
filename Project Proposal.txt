@@ -1,0 +1,17 @@
+Introducing... Bootleg MS Paint!
+
+Description:
+Designed to be a paint software that runs in python utilizing the modules Tkinter and PIL. It will include a color wheel to select colors, drawing, filling, clearing, and more. 
+
+Competitive Analysis:
+One of the biggest components of this project is its similarity to other paint softwares. While there are components that cannot rival the advanced algorithms utilized and faster runtime of MS paint (which likely uses C), there is more opportunity to do certain actions in this software. The key component will be its ability to perform every function as it would with your regular drawings as with any downloaded image from online. In fact, an issue observed with MS paint is its inability to fill in pictures from the internet due to very specific color choices. By dumbing it down to more generalized definitions of colors, it is easier to fill in such colors. 
+
+Structural Plan:
+Simply a gui that contains buttons to perform particular functions. It will have a paint canvas, where you can perform your functions on. 
+
+Algorithmic Plan:
+One big algorithm that needs to be completed is the floodfill. One issue is its inefficiency and breaks. The breaks occur due to the cumbersome placement of buttons and strange issue with the tkinter events. The inefficiency will have to be corrected. Looking at my current creation, one issue is the fact that because it recursively fills in the board as you draw, it lags and causes the board to look like bumpy circles (which can be shown after loading a saved image of what was drawn). One way to counter this would definitely think about how we can save the board. In fact, when drawing and whatnot, its not important to change the board every time. Idea is to make it only change the board whenever a function such as fill is called (which depends on the board). 
+Also to deal with the bumps, we could also try to make it more smooth by making it a series of lines where everytime timefired is called, it uses the previous point as the first point. However, this will make the object look jagged.
+
+Also, thanks to a source, to make drawing faster, instead of calling it every iteration, use the B1-Pressed lambda event from tkinter (which I know about from before). Even if you think it's just called in the same delay of like reDrawAll, it actually runs faster (idk why)
+

@@ -49,7 +49,9 @@ def fillDot(data, row, col, center): #Center is a tuple that is constant
         return
     elif data.board[row][col] == data.color:
         return
-    elif dist > 0.25*data.radius**2: #0.25 because radius is radius of eraser
+    elif dist > data.radius**2 and data.function == 3:
+        return
+    elif dist > 0.25*data.radius**2 and data.function != 3: #0.25 because radius is radius of eraser
         return
     else:
         data.board[row][col] = data.color
@@ -74,14 +76,15 @@ def pen(data):
 
 def erase(data):
     data.color = 7
-    x = data.cursor[0]
-    y = data.cursor[1]
+    x = data.cursor[1]
+    y = data.cursor[0]
     #print(data.color)
     if data.pressed:
-        for i in range(data.radius): #The issue with this is that you are looping through integer values for radius and theta, so you dont really reach all boxes. This is evident by the fact that your values are stars
+        '''for i in range(data.radius): #The issue with this is that you are looping through integer values for radius and theta, so you dont really reach all boxes. This is evident by the fact that your values are stars
             for j in range(int(2*pi)):
                 if 0 <= int(y+i*sin(j)) < data.height and 0 <= int(x+i*cos(j)) < data.width:
-                    data.board[int(y+i*sin(j))][int(x+i*cos(j))] = data.color
+                    data.board[int(y+i*sin(j))][int(x+i*cos(j))] = data.color'''
+        fillDot(data, x, y, (x+0.5, y + 0.5))            
     #print(data.board)
     
 '''def fill(canvas, data, x, y):
