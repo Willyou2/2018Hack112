@@ -41,13 +41,18 @@ def init(data):
     data.title = ImageTk.PhotoImage(image)
     data.count = 0
     data.colorFill = data.color #If you select a box to fill, the color of the pixel is what it will check for your box to be equal to
+    ####### Shape Parameters #######
+    data.rect = ((0,0),(0,0)) #Might consider making rect a class and making a list of those classes so you can select and move these shapes. First coord is the initial point, which will be set by a buttonpressed function. The second is the point where you're dragging it to. When you button-release, it will draw the rectangle.
+    data.oval = ((0,0),(0,0))
+    data.shape = None #This will be set equal to some create_something depending on shape draw so it can be deleted and recreated. It's arbitrary since what it's set equal to will be deleted and recreated depending on your shape
 
 def fillDot(data, row, col, center): #Center is a tuple that is constant
+    #FIX THE ERROR IN THE ELIF = DATA.COLOR BY FIRST RUNNING A REUCURSIVE FUNC THAT FINDS IF THERES A WHITE SPOT STILL WITHIN RADIUS THEN SEND THAT INITIAL ROW/COL HERE BUT KEEP CENTER
     centerBox = (row+0.5, col + 0.5) #Finds center of current box
     dist = (centerBox[0]-center[0])**2 + (centerBox[1]-center[1])**2
     if row <= 0 or col <= 0 or row >= len(data.board)-1 or col >= len(data.board[row]):
         return
-    elif data.board[row][col] == data.color:
+    elif data.board[row][col] == data.color: #This is to prevent issues with crashing (which is due to infinite loop since each move goes around the circle infinitely) but it brings the issue of if you click a circle in another and the center immediately is surrounded by the color, it wont fill
         return
     elif dist > data.radius**2 and data.function == 3:
         return
@@ -60,6 +65,9 @@ def fillDot(data, row, col, center): #Center is a tuple that is constant
         fillDot(data, row, col + 1, center)
         fillDot(data, row, col - 1, center)
 
+def findDiffColor(data, row, col, center): #Make sure this recursive function calls the fillDot whenever it finds a whitespot
+    #I can tell this will be one hell of an AIDS inducing backtracking thing
+    pass
 
 def pen(data):
     row = data.cursor[1]
@@ -72,7 +80,7 @@ def pen(data):
                     data.board[int(y+i*sin(j))][int(x+i*cos(j))] = data.color'''
         fillDot(data, row, col, (row+0.5, col+0.5))
     #print(data.board)
-       # data.board[int(data.cursor[1])][int(data.cursor[0])] = data.color
+       # data.board[int(data.cursor[1])][in  t(data.cursor[0])] = data.color
 
 def erase(data):
     data.color = 7
@@ -125,7 +133,7 @@ def save(data):
             #filename.write("hi!")
         if i != len(data.board)-1:
             filename.write('|\n')
-    filename.close()'''
+    filename.close()''' 
     image1 = Image.new("RGB", (data.width, data.height), 'white')
     draw = ImageDraw.Draw(image1)
     for i in range(len(data.board)):
@@ -223,17 +231,19 @@ def motion(event, data):
     #print(data.cursor)
     
 def mousePressed(canvas, event, data):
-    if root.winfo_pointerx()-root.winfo_rootx()>data.width-2*data.rectWidth:
+    if root.winfo_pointerx()-root.winfo_rootx()>data.width-2*data.rectWidth:#Keep not //8 because otherwise crashes
         return
     data.pressed = True
     if data.function == 2:
-        print(event.x, event.y)
+        #print(event.x, event.y)
         data.colorFill = data.board[event.y][event.x]
         
         fill(canvas, data, int(event.y), int(event.x)) #Ask shawn why he passed event.y then event.x instead of the other way around
     
 def mouseReleased(event, data):
     data.pressed = False
+    #print("Event: (" + str(event.x) + "," + str(event.y))
+    #print("Event: (" + str(root.winfo_pointerx()-root.winfo_rootx()) + "," + str(root.winfo_pointery()-root.winfo_rooty())) #To compare winfo to event
 
 '''def giveListOfBiggerX(data):
     lst = []
@@ -252,6 +262,40 @@ def keyPressed(event, data):
     data.charText = event.char
     data.keysymText = event.keysym
 
+
+###############################
+######## Shape Drawing ########
+###############################
+
+def initPoint(canvas, data): #On mouse clicked
+    if data.functions[data.function] == "rect":
+        x = root.winfo_pointerx()-root.winfo_rootx()
+        y = root.winfo_pointery()-root.winfo_rooty()
+        data.rect[0] = (x, y)
+        data.rect[1] = (x, y) #initialize this even though it will change
+        data.shape = canvas.create_rectangle(data.rect[0], data.rect[1], fill = '')
+    if data.functions[data.function] == "oval":
+        x = root.winfo_pointerx()-root.winfo_rootx()
+        y = root.winfo_pointery()-root.winfo_rooty()
+        data.oval[0] = (x, y)
+        data.oval[1] = (x, y) #initialize this even though it will change
+        data.shape = canvas.create_oval(data.rect[0], data.rect[1], fill = '')
+
+def drawShape(canvas, data): #On b1-motion
+    if data.functions[data.function] == "rect":
+        canvas.delete(data.shape) #Deletes previous shape, but wont keep deleting since this function only works if both B1 and motion
+        canvas.create_rectangle(data.rect[0], data.rect[1], fill = '')
+
+
+def makeShape(canvas, data): #on mouse released
+    if data.functions[data.function] == "rect":
+        if abs(data.rect[0][0] - data.rect[1][0]) <= 3: #If the difference is too small, it will create a rectangle of fixed size
+            x = data.rect[0][0] + 4
+            y = data.rect[0][1] + 4
+            canvas.create_rectangle(data.rect[0], x, y, fill = data.colors[data.color]) #Choose some width for the rectangle
+        else:
+            canvas.create_rectangle(data.rect[0], data.rect[1], fill = data.colors[data.color])
+
 # Draw graphics normally with redrawAll
 # Main difference: the data struct contains helpful information to assist drawing
 # Also, the canvas will get cleared and this will be called again
@@ -264,6 +308,7 @@ def redrawAll(canvas, data):
         data.count += 1
 
     if data.functions[data.function] == "erase" and data.pressed:
+        erase(data)
         #canvas.create_oval(data.cursor[0]-10, data.cursor[1]-10, 
         #                   data.cursor[0]+10, data.cursor[1]+10)
 
@@ -272,6 +317,7 @@ def redrawAll(canvas, data):
         canvas.create_oval(x1,y1,x2,y2, fill=data.colors[7], width = 0)
 
     elif data.functions[data.function] == "pen" and data.pressed:
+        pen(data)
         x1,y1 = data.cursor[0]-data.radius/2, data.cursor[1]-data.radius/2
         x2,y2 = data.cursor[0]+data.radius/2, data.cursor[1]+data.radius/2
         canvas.create_oval(x1, y1, x2, y2, fill=data.colors[data.color], width = 0)
@@ -342,16 +388,16 @@ def drawButtons(canvas, data):
                                         y=data.functHeight*num)
         
                            
-def timerFired(canvas, data):
+def timerFired(canvas, data): #Absolutely useless function 
     x = root.winfo_pointerx()
     y = root.winfo_pointery()
     #print(x,y)
     #data.cursor = (root.winfo_pointerx()-root.winfo_rootx(), 
     #               root.winfo_pointery()-root.winfo_rooty())
-    if data.functions[data.function] == "pen":
-        pen(data)
-    if data.functions[data.function] == "erase":
-        erase(data)
+    #if data.functions[data.function] == "pen":
+    #    pen(data)
+    #if data.functions[data.function] == "erase":
+    #    erase(data)
     #if data.functions[data.function] == "save":
     #    saveFile(canvas, data)
     
@@ -394,6 +440,19 @@ def run(width=300, height=300):
         redrawAllWrapper(canvas, data)
         # pause, then call timerFired again
         canvas.after(data.timerDelay, timerFiredWrapper, canvas, data)
+    def startShapeWrapper(canvas, data):
+        #print("hi")
+        initPoint(canvas, data)
+        redrawAllWrapper(canvas, data)
+
+    def drawShapeWrapper(canvas, data):
+        drawShape(canvas, data)
+        redrawAllWrapper(canvas, data)
+
+    def makeShapeWrapper(canvas, data):
+        makeShape(canvas, data)
+        redrawAllWrapper(canvas, data)
+
     # Set up data and call init
     class Struct(object): pass
     data = Struct()
@@ -405,6 +464,7 @@ def run(width=300, height=300):
     canvas = Canvas(root, width=data.width, height=data.height)
     canvas.pack()
     # set up events
+    #frame = Frame(root, width = data.width, height = data.height)
     root.bind("<Button-1>", lambda event:
                             mousePressedWrapper(event, canvas, data))
     root.bind("<ButtonRelease-1>", lambda event: 
@@ -413,6 +473,13 @@ def run(width=300, height=300):
                             keyPressedWrapper(event, canvas, data))
     root.bind('<Motion>', lambda event: 
                             motionWrapper(event, canvas, data))
+    canvas.bind('<Button-1>', lambda event: #Binding here causes none of the other functions to work. Trying canvas works but it may cause other erros
+                            startShapeWrapper(canvas, data))
+    #frame.bind('<B1-Motion>', lambda event:
+    #                        drawShapeWrapper(canvas, data))
+    #frame.bind('<ButtonRelease-1>', lambda event:
+    #                        makeShapeWrapper(canvas, data))
+    #frame.pack()
     canvas.create_rectangle(0, 0, data.width, data.height,
                                 fill='white', width=0)
     timerFiredWrapper(canvas, data)

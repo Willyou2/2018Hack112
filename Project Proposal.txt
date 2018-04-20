@@ -15,3 +15,10 @@ Also to deal with the bumps, we could also try to make it more smooth by making 
 
 Also, thanks to a source, to make drawing faster, instead of calling it every iteration, use the B1-Pressed lambda event from tkinter (which I know about from before). Even if you think it's just called in the same delay of like reDrawAll, it actually runs faster (idk why)
 
+Timeline:
+Idea is to complete and optimize how I draw and fill in a pixel board by the end of this week. In addition, I will attempt to implement the color wheel scheme. I will also work on completing the save and load functions.
+The following week, I will work on optimizing the fill function. In addition, I will add key components such as drawing shapes.
+
+Version Control Plan: Github
+
+Module List: Tkinter, PIL
