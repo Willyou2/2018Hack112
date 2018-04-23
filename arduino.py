@@ -24,15 +24,15 @@ def init(data):
     data.cursor = (data.width//2, data.height//2)
     data.pressed = False
     data.colors = ["black", "red", "blue", "green", "yellow", "purple", "brown", "white"]
-    data.functions = ["pointer", "pen", "fill", "erase", "thicker", "thinner", "save", "load", "clear"]
+    data.functions = ["pointer", "pen", "fill", "erase", "thicker", "thinner", "save", "load", "clear", "rect"]
     data.rectWidth = data.width // 10
     data.rectHeight = data.height // len(data.functions)
     data.functHeight = data.height // len(data.functions)
     data.board = []
     data.cellWidth = 10
     #IF FLOODFILL FAILS JUST ADJUST THE HEIGHT BACK TO REGULAR
-    for i in range(data.height+1): #+1 because the board pixels go from 0 to 500, so there needs to be a 500th cell
-        data.board += [[7]*((data.width-data.rectWidth//4))] #-data.rectWidth//4 because 2times the width of the rectangles. Change later when you configure it properly
+    for i in range(data.height + 1): #+1 because the board pixels go from 0 to 500, so there needs to be a 500th cell
+        data.board += [[7]*((data.width-2*data.rectWidth+1))] #-data.rectWidth//4 because 2times the width of the rectangles. Change later when you configure it properly
     data.temp = 0
     data.colorCode = [(0,0,0), (255,0,0), (0,0,255), (0,128,0), (255,255,0), (128,0,128), (165,42,42), (255,255,255)]#[(1,1,1), (170,39,31), (25,8,146), (36,107,31), (227,244,106), (95,24,100), (120,59,74), (255,255,255)] #Drawing red in PIL is different from generic red
     data.filename = "Example.jpg"
@@ -42,9 +42,10 @@ def init(data):
     data.count = 0
     data.colorFill = data.color #If you select a box to fill, the color of the pixel is what it will check for your box to be equal to
     ####### Shape Parameters #######
-    data.rect = ((0,0),(0,0)) #Might consider making rect a class and making a list of those classes so you can select and move these shapes. First coord is the initial point, which will be set by a buttonpressed function. The second is the point where you're dragging it to. When you button-release, it will draw the rectangle.
-    data.oval = ((0,0),(0,0))
+    data.rect = [(0,0),(0,0)] #Might consider making rect a class and making a list of those classes so you can select and move these shapes. First coord is the initial point, which will be set by a buttonpressed function. The second is the point where you're dragging it to. When you button-release, it will draw the rectangle.
+    data.oval = [(0,0),(0,0)]
     data.shape = None #This will be set equal to some create_something depending on shape draw so it can be deleted and recreated. It's arbitrary since what it's set equal to will be deleted and recreated depending on your shape
+    data.sWidth = 5 #Shape width
 
 def fillDot(data, row, col, center): #Center is a tuple that is constant
     #FIX THE ERROR IN THE ELIF = DATA.COLOR BY FIRST RUNNING A REUCURSIVE FUNC THAT FINDS IF THERES A WHITE SPOT STILL WITHIN RADIUS THEN SEND THAT INITIAL ROW/COL HERE BUT KEEP CENTER
@@ -191,11 +192,13 @@ def load(canvas, data):
     saver = Button(root, text = "Save", width = 30, height = 30, bg = 'lightblue', command=save).place(x=data.width//2, y=data.height*2//3)'''
 def fill(canvas, data, x, y):
     #"hidden" stop clause - not reinvoking for "c" or "b", only for "a"
-    if x<=0 or y<=0 or x>=len(data.board)-1 or y>=len(data.board[x]):
+    if x<=0 or y<=0 or x+1>=len(data.board)-1 or y+1>=len(data.board[0])-1:
         return
-    if data.board[x][y]!=data.colorFill:# or data.board[x-1][y-1]!= data.colorFill or data.board[x-1][y+1]!=data.colorFill or data.board[x+1][y-1]!=data.colorFill or data.board[x+1][y+1]!=data.colorFill:
+    elif data.color == data.colorFill:
         return
-    if data.board[x][y] == data.colorFill:
+    elif data.board[x][y]!=data.colorFill:# or data.board[x-1][y-1]!= data.colorFill or data.board[x-1][y+1]!=data.colorFill or data.board[x+1][y-1]!=data.colorFill or data.board[x+1][y+1]!=data.colorFill:
+        return
+    elif data.board[x][y] == data.colorFill: #Even though this is correct, it runs into error if you fill in a spot with the same color you want to fill it with ex: filling in an already black circle with black
         data.board[x][y] = data.color
         #data.board[x+1][y]=data.color
         #data.board[x-1][y]=data.color
@@ -205,11 +208,15 @@ def fill(canvas, data, x, y):
         canvas.create_rectangle(y,x,y+1,x+1,fill=data.colors[data.board[x][y]], width=0)
         #recursively invoke flood fill on all surrounding cells:
         #if x > 0: 
+
+        ################ REMEMBER X IS Y COORD AND Y IS X COORD 
+
         fill(canvas, data,x-1,y)
+        fill(canvas, data,x,y-1) #Commenting this out also crashes python and only this
         #if x < len(data.board[y])-1:
         fill(canvas, data,x+1,y)
         #if y > 0:
-        fill(canvas, data,x,y-1)
+        
         #if y < len(data.board)-1:
         fill(canvas, data,x,y+1)
         #Notes: Shawn's fill function works better than mine which is by changing everything to not fill x-2 but rather x-1 and commenting out the above if statements of like data.board[x-1][y-1]!= data.colorFill
@@ -259,6 +266,19 @@ def mouseReleased(event, data):
 # event.keysym holds special names for certain keys non-alphanumeric keys
 # for example, "space", "BackSpace", "parenleft", "exclam"
 def keyPressed(event, data):
+    if event.char == "a":
+        print(data.board)
+    if event.char == "b":
+        print(data.cursor[0], data.cursor[1], end = ' ')
+        print(len(data.board), len(data.board[0]))
+    if event.char == "c":
+        print(data.height, data.width, '')
+
+    if event.char == "d":
+        print(data.cursor[0], data.cursor[1], end = ' ')
+        print(event.x, event.y )
+    if event.keysym == "Escape":
+        quit()
     data.charText = event.char
     data.keysymText = event.keysym
 
@@ -281,21 +301,47 @@ def initPoint(canvas, data): #On mouse clicked
         data.oval[1] = (x, y) #initialize this even though it will change
         data.shape = canvas.create_oval(data.rect[0], data.rect[1], fill = '')
 
+
 def drawShape(canvas, data): #On b1-motion
+    if root.winfo_pointerx()-root.winfo_rootx() > len(data.board[0])-1:
+        x = len(data.board[0]) - 1
+    elif root.winfo_pointerx()-root.winfo_rootx() < 0:
+        x = 0
+    else:
+        x = root.winfo_pointerx()-root.winfo_rootx()
+    if root.winfo_pointery()-root.winfo_rooty() > len(data.board)-1:
+        y = len(data.board)-1
+    elif root.winfo_pointery()-root.winfo_rooty() < 0:
+        y = 0
+    else:
+        y = root.winfo_pointery()-root.winfo_rooty()
     if data.functions[data.function] == "rect":
+        data.rect[1] = (x,y)
         canvas.delete(data.shape) #Deletes previous shape, but wont keep deleting since this function only works if both B1 and motion
-        canvas.create_rectangle(data.rect[0], data.rect[1], fill = '')
+        data.shape = canvas.create_rectangle(data.rect[0], data.rect[1], fill = '', width = data.sWidth, outline = data.colors[data.color])
 
 
 def makeShape(canvas, data): #on mouse released
+    canvas.delete(data.shape)
     if data.functions[data.function] == "rect":
-        if abs(data.rect[0][0] - data.rect[1][0]) <= 3: #If the difference is too small, it will create a rectangle of fixed size
-            x = data.rect[0][0] + 4
-            y = data.rect[0][1] + 4
-            canvas.create_rectangle(data.rect[0], x, y, fill = data.colors[data.color]) #Choose some width for the rectangle
+        if abs(data.rect[0][0] - data.rect[1][0]) <= 10 or abs(data.rect[0][1] - data.rect[1][1]) <= 10: #If the difference is too small, it will create a rectangle of fixed size
+            try: dx = (data.rect[1][0] - data.rect[0][0])/abs(data.rect[1][0] - data.rect[0][0])
+            except: dx = (data.rect[1][0] - data.rect[0][0]+1)/abs(data.rect[1][0] - data.rect[0][0]+1)
+            try: dy = (data.rect[1][1] - data.rect[0][1])/abs(data.rect[1][1] - data.rect[0][1])
+            except: dy = (data.rect[1][1] - data.rect[0][1]+1)/abs(data.rect[1][1] - data.rect[0][1]+1)
+            x = data.rect[0][0] + 10*dx
+            y = data.rect[0][1] + 10*dy
+            canvas.create_rectangle(data.rect[0], x, y, fill = data.colors[data.color], width = data.sWidth, outline = data.colors[data.color]) #Choose some width for the rectangle
+            for i in range(min(data.rect[0][1], data.rect[1][1])-data.sWidth, max(data.rect[0][1], data.rect[1][1])+data.sWidth+1):
+                for j in range(min(data.rect[0][0], data.rect[1][0])-data.sWidth, max(data.rect[0][0], data.rect[1][0])+data.sWidth+1):
+                    data.board[i][j] = data.color
         else:
-            canvas.create_rectangle(data.rect[0], data.rect[1], fill = data.colors[data.color])
-
+            canvas.create_rectangle(data.rect[0], data.rect[1], fill = data.colors[data.color], width = data.sWidth, outline = data.colors[data.color])
+            for i in range(min(data.rect[0][1], data.rect[1][1]) - data.sWidth//2, max(data.rect[0][1], data.rect[1][1])+data.sWidth//2):
+                for j in range(min(data.rect[0][0], data.rect[1][0])- data.sWidth//2, max(data.rect[0][0], data.rect[1][0])+ data.sWidth//2):
+                    data.board[i][j] = data.color
+        #only looks smaller cuz we had to do an int divide since its possible for your cursor to be in a decimal location
+        
 # Draw graphics normally with redrawAll
 # Main difference: the data struct contains helpful information to assist drawing
 # Also, the canvas will get cleared and this will be called again
@@ -383,6 +429,7 @@ def drawButtons(canvas, data):
     data.functionButtons[6].configure(command=lambda:save(data))
     data.functionButtons[7].configure(command=lambda:load(canvas,data))
     data.functionButtons[8].configure(command=lambda:clearBoard(canvas,data))
+    data.functionButtons[9].configure(command=lambda:changeFunction(9,data))
     for num in range(len(data.functionButtons)):
         data.functionButtons[num].place(x=data.width-2*data.rectWidth,
                                         y=data.functHeight*num)
@@ -475,10 +522,10 @@ def run(width=300, height=300):
                             motionWrapper(event, canvas, data))
     canvas.bind('<Button-1>', lambda event: #Binding here causes none of the other functions to work. Trying canvas works but it may cause other erros
                             startShapeWrapper(canvas, data))
-    #frame.bind('<B1-Motion>', lambda event:
-    #                        drawShapeWrapper(canvas, data))
-    #frame.bind('<ButtonRelease-1>', lambda event:
-    #                        makeShapeWrapper(canvas, data))
+    canvas.bind('<B1-Motion>', lambda event:
+                            drawShapeWrapper(canvas, data))
+    canvas.bind('<ButtonRelease-1>', lambda event:
+                            makeShapeWrapper(canvas, data))
     #frame.pack()
     canvas.create_rectangle(0, 0, data.width, data.height,
                                 fill='white', width=0)
