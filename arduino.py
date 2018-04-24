@@ -44,6 +44,7 @@ def init(data):
     ####### Shape Parameters #######
     data.rect = [(0,0),(0,0)] #Might consider making rect a class and making a list of those classes so you can select and move these shapes. First coord is the initial point, which will be set by a buttonpressed function. The second is the point where you're dragging it to. When you button-release, it will draw the rectangle.
     data.oval = [(0,0),(0,0)]
+    data.line = [(0,0),(0,0),0] #third coordinate is the slope. The x0,y0 and xf,yf are the midpoints of the pixel. Slope calculated by midpoints
     data.shape = None #This will be set equal to some create_something depending on shape draw so it can be deleted and recreated. It's arbitrary since what it's set equal to will be deleted and recreated depending on your shape
     data.sWidth = 5 #Shape width
 
@@ -192,7 +193,8 @@ def load(canvas, data):
     saver = Button(root, text = "Save", width = 30, height = 30, bg = 'lightblue', command=save).place(x=data.width//2, y=data.height*2//3)'''
 def fill(canvas, data, x, y):
     #"hidden" stop clause - not reinvoking for "c" or "b", only for "a"
-    if x<=0 or y<=0 or x+1>=len(data.board)-1 or y+1>=len(data.board[0])-1:
+    print(y,x)
+    if x-1<=0 or y-1<=0 or x+1>=len(data.board)-1 or y+1>=len(data.board[0])-1: 
         return
     elif data.color == data.colorFill:
         return
@@ -319,6 +321,86 @@ def drawShape(canvas, data): #On b1-motion
         data.rect[1] = (x,y)
         canvas.delete(data.shape) #Deletes previous shape, but wont keep deleting since this function only works if both B1 and motion
         data.shape = canvas.create_rectangle(data.rect[0], data.rect[1], fill = '', width = data.sWidth, outline = data.colors[data.color])
+    # Implement a line drawing function with arbitrary width. Idea to have thickness bigger than 1 is to simply do 2 way bresenham alg: first to draw a 1d line, then add more lines above it. However, to make sure the lines above are started at the right point, depending on the angled line, u have another line (the width of the line) that is orthogonal, so use bresenham to decide start points
+
+def smallLineDraw(canvas, data, x, y, xf, yf, yBase): #put this in make shape. This is an implementation of Bresenham's algorithm
+    #Assume abs(slope) less than 1 (diagonal down right). 
+    #x0 and y0 are the midpoints of the pixel you are at, yBase initially is y0, slope is m
+    #Pseudocode: step x+1
+    #y+m. If y+m - yBase > 0.5, yBase += 1. Fill box of yBase
+    #Recursively call itself again and change its y and x coord. 
+    #base case: x, y equal final x and y #xF and yF are midpoints of box. Slope is calculated via those midpoints, so of course should eventually reach the point
+    #dont worry abotu checking base case after x+1 or y+1 because the way we calculate slope, in order for it to reach the final point, it must complete the rise and run, otherwise it wont be a straight line
+    if (x,y) == (xf,yf):
+        return
+    x += 1
+    y += data.line[2]
+    if abs(y - ybase) > 0.5: #Dont need to check this again for slope < 1 becasue it cannot possible cover more than 2 boxes in 1 try. If running slope > 1, then need to use a xBase instead
+        if data.line[2] > 0:
+            yBase += 1
+        if data.line[2] < 0:
+            yBase += -1
+    data.board[x - 0.5][yBase - 0.5] = data.color #yBase is fine instead of yBase + 1 because remember that y increases downwards. Also -0.5 because we are using midpoint for x as well
+    dummyLineDraw(canvas, data, x, y, xf, yf, yBase)
+
+def largeLineDraw(canvas, data, x, y, xf, yf, xBase): #put this in make shape. This is an implementation of Bresenham's algorithm
+    #Assumes slope is greater than 1 
+    #Use dx/dy instead of dy/dx. Simply do 1/(dy/dx)
+    if (x,y) == (xf, yf):
+        return
+    x += data.line[2]
+    y += 1
+    if abs(x - xbase) > 0.5: #Dont need to check this again for slope < 1 becasue it cannot possible cover more than 2 boxes in 1 try. If running slope > 1, then need to use a xBase instead
+        if data.line[2] > 0:
+            xBase += 1
+        if data.line[2] < 0:
+            xBase += -1
+    data.board[xBase - 0.5][y - 0.5] = data.color #yBase is fine instead of yBase + 1 because remember that y increases downwards. Also -0.5 because we are using midpoint for x as well
+    largeLineDraw(canvas, data, x, y, xf, yf, xBase)
+
+##########WIDTH DRAWERS################
+#The xf and yf are the xf and yf of the width function (just calculate it)
+#KEEP TRACK OF WHAT IS DEFINED AS DATA.LINE BECAUSE YOU SEND IN DIFF VALUES DEPENDING ON WHIH ONE IS LEFT SIDE WHICH IS RIGHT SIDE 
+
+
+#For x,y, determine inital x,y and final x,y 
+def smallDrawWidth(canvas, data, x, y, xf, yf, yBase): #This is used when width slope is smaller than 1
+    #put this before the base case to ensure that it runs for every case
+    longxf = x - data.line[0][0] + data.line[1][0] #adds difference to the end points to create new xf and yf for those
+    longyf = y - data.line[0][1] + data.line[1][1] 
+    largeLineDraw(canvas, data, x, y, longxf, longyf, xBase) #if the width has a small slope, then the orthogonal is large
+
+    if (x,y) == (xf, yf):
+        return
+
+    x += 1
+    y += -1/data.line[2]
+
+    if abs(y - ybase) > 0.5: #Dont need to check this again for slope < 1 becasue it cannot possible cover more than 2 boxes in 1 try. If running slope > 1, then need to use a xBase instead
+        if data.line[2] > 0:
+            yBase += 1
+        if data.line[2] < 0:
+            yBase += -1
+    data.board[x - 0.5][yBase - 0.5] = data.color #yBase is fine instead of yBase + 1 because remember that y increases downwards. Also -0.5 because we are using midpoint for x as well
+    smallDrawWidth(canvas, data, x, y, xf, yf, yBase)
+
+def largeDrawWidth(canvas, data, x, y, xf, yf, xBase):
+    longxf = x - data.line[0][0] + data.line[1][0] #adds difference to the end points to create new xf and yf for those
+    longyf = y - data.line[0][1] + data.line[1][1] 
+    smallLineDraw(canvas, data, x, y, longxf, longyf, yBase)
+
+    if (x,y) == (xf, yf):
+        return
+    x += -1/data.line[2]
+    y += 1
+    if abs(x - xbase) > 0.5: #Dont need to check this again for slope < 1 becasue it cannot possible cover more than 2 boxes in 1 try. If running slope > 1, then need to use a xBase instead
+        if data.line[2] > 0:
+            xBase += 1
+        if data.line[2] < 0:
+            xBase += -1
+    data.board[xBase - 0.5][y - 0.5] = data.color #yBase is fine instead of yBase + 1 because remember that y increases downwards. Also -0.5 because we are using midpoint for x as well
+    
+    largeDrawWidth(canvas, data, x, y, xf, yf, xBase)
 
 
 def makeShape(canvas, data): #on mouse released
