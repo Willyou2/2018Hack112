@@ -24,7 +24,7 @@ def init(data):
     data.cursor = (data.width//2, data.height//2)
     data.pressed = False
     data.colors = ["black", "red", "blue", "green", "yellow", "purple", "brown", "white"]
-    data.functions = ["pointer", "pen", "fill", "erase", "thicker", "thinner", "save", "load", "clear", "rect", "line"]
+    data.functions = ["pointer", "pen", "fill", "erase", "thicker", "thinner", "save", "load", "clear", "rect", "line"]#, "testEntry"]
     data.rectWidth = data.width // 10
     data.rectHeight = data.height // len(data.functions)
     data.functHeight = data.height // len(data.functions)
@@ -124,7 +124,42 @@ def thin(data):
     if data.radius - 2 > 0:
         data.radius -= 2
 
-def save(data):
+def testEntry(data):
+    master = Tk()
+    e = Entry(master)
+    e.grid(row=0, column=1)
+    #e.focus_set()
+    Label(master, text="SaveName").grid(row=0)
+    #Label(master, text="Last Name").grid(row=1)
+
+    #e1 = Entry(master)
+    #e2 = Entry(master)
+
+    #e1.grid(row=0, column=1)
+    #e2.grid(row=1, column=1)
+    def callback():
+        print(e.get())
+
+    def combine_funcs(*funcs): #Cited from https://stackoverflow.com/questions/13865009/have-multiple-commands-when-button-is-pressed
+        def combined_func(*args, **kwargs):
+            for f in funcs:
+                f(*args, **kwargs)
+        return combined_func
+    b = Button(master, text = "get", width = 10, command=callback)
+    b.grid(row=1)
+    #b.pack()
+    c = Button(master, text = "close", width = 10, command=combine_funcs(e.grid_remove, master.destroy))
+    c.grid(row=2)
+    #c.pack()
+    d = Button(master, text = "quit", width = 10, command=master.destroy)
+    d.grid(row=3)
+    #d.pack()
+    master.mainloop()
+    #e= Entry(root, width = 50)
+    #e.pack()
+    #text = e.get()
+
+def saveData(data, name):
     '''filename = open("Example.txt","w")'''
     '''for i in range(len(data.board)):
         for j in range(len(data.board[0])):
@@ -141,13 +176,91 @@ def save(data):
     for i in range(len(data.board)):
         for j in range(len(data.board[0])):
             draw.point([(j,i)], fill = data.colors[data.board[i][j]])
-    image1.save(data.filename)
+    filename = name + ".jpg"
+    image1.save(filename)
 
-'''def readFile(path):
-    with open(path, "rt") as f:
-        return f.read()'''
+    '''def readFile(path):
+        with open(path, "rt") as f:
+            return f.read()'''
+
+
+def save(data):
+    master = Tk()
+    e = Entry(master)
+    e.grid(row=0, column=1)
+    #e.focus_set()
+    Label(master, text="SaveName").grid(row=0)
+    #Label(master, text="Last Name").grid(row=1)
+
+    #e1 = Entry(master)
+    #e2 = Entry(master)
+
+    #e1.grid(row=0, column=1)
+    #e2.grid(row=1, column=1)
+    def callback():
+        print(e.get())
+
+    def combine_funcs(*funcs): #Cited from https://stackoverflow.com/questions/13865009/have-multiple-commands-when-button-is-pressed
+        def combined_func(*args, **kwargs):
+            for f in funcs:
+                f(*args, **kwargs)
+        return combined_func
+    def saver(data, name = e.get()):
+        saveData(data, name)
+
+    b = Button(master, text = "get", width = 10, command=callback)
+    b.grid(row=1)
+    #b.pack()
+    c = Button(master, text = "Save", width = 10, command= lambda:combine_funcs(saveData(data, e.get()),master.destroy()))
+    c.grid(row=2)
+    #c.pack()
+    d = Button(master, text = "quit", width = 10, command=master.destroy)
+    d.grid(row=3)
+    #d.pack()
+    master.mainloop()
+    #e= Entry(root, width = 50)
+    #e.pack()
+    #text = e.get()
 
 def load(canvas, data):
+    master = Tk()
+    e = Entry(master)
+    e.grid(row=0, column=1)
+    #e.focus_set()
+    Label(master, text="SaveName").grid(row=0)
+    #Label(master, text="Last Name").grid(row=1)
+
+    #e1 = Entry(master)
+    #e2 = Entry(master)
+
+    #e1.grid(row=0, column=1)
+    #e2.grid(row=1, column=1)
+    def callback():
+        print(e.get())
+
+    def combine_funcs(*funcs): #Cited from https://stackoverflow.com/questions/13865009/have-multiple-commands-when-button-is-pressed
+        def combined_func(*args, **kwargs):
+            for f in funcs:
+                f(*args, **kwargs)
+        return combined_func
+    def saver(data, name = e.get()):
+        saveData(data, name)
+
+    b = Button(master, text = "get", width = 10, command=callback)
+    b.grid(row=1)
+    #b.pack()
+    c = Button(master, text = "Load", width = 10, command= lambda:combine_funcs(loadData(canvas, data, e.get()), master.destroy())) #Doesnt destroy because load fails because of rgb problem. Easy fix just use rgbs instead of color names
+    c.grid(row=2)
+    #c.pack()
+    d = Button(master, text = "quit", width = 10, command=master.destroy)
+    d.grid(row=3)
+    #d.pack()
+    master.mainloop()
+    #e= Entry(root, width = 50)
+    #e.pack()
+    #text = e.get()
+
+def loadData(canvas, data, name):
     '''
     filename = readFile("Example.txt")
     temp = []
@@ -164,11 +277,12 @@ def load(canvas, data):
     #except:
     #    print("Invalid File")
     '''
+    filename = name + ".jpg"
     try:
-        image = Image.open(data.filename)
+        image = Image.open(filename)
         photo = ImageTk.PhotoImage(image)
         canvas.create_image(0,0, anchor = NW, image = photo)
-        img = Image.open(data.filename).convert("RGB")
+        img = Image.open(filename).convert("RGB")
         pix = img.load()
     except:
         print("Error, file not Found")
@@ -472,7 +586,7 @@ def makeShape(canvas, data): #on mouse released
         data.line[1] = (x,y)
         data.line[2] = (y-data.line[0][1])/(x-data.line[0][0])
         wSlope = -1/data.line[2] #parametrize this to calculate final point
-        print(data.line[2])
+        #print(data.line[2])
         #data.xComp = 1
         #data.yComp = -1/data.line[2]
         canvas.create_line(data.line[0],data.line[1], fill = data.colors[data.color], width = data.sWidth)
@@ -588,6 +702,7 @@ def drawButtons(canvas, data):
     data.functionButtons[8].configure(command=lambda:clearBoard(canvas,data))
     data.functionButtons[9].configure(command=lambda:changeFunction(9,data))
     data.functionButtons[10].configure(command=lambda:changeFunction(10, data))
+    #data.functionButtons[11].configure(command=lambda:testEntry(data))
     for num in range(len(data.functionButtons)):
         data.functionButtons[num].place(x=data.width-2*data.rectWidth,
                                         y=data.functHeight*num)

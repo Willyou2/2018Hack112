@@ -22,3 +22,11 @@ The following week, I will work on optimizing the fill function. In addition, I 
 Version Control Plan: Github
 
 Module List: Tkinter, PIL
+
+TP2 Update
+Continued to try and work on fill function. Because of python's huge allocation of memory compared to C, it reaches the issue of stack overflow. 
+I've also worked on implementing a rectangle drawer. The rectangle drawing function was quite difficult in terms of the mathematics behind it, but the general idea is pretty simple.
+I also implemented a line drawing function, where I made use of an algorithm I learned about: Bresenham's algorithm. Because it only applies to width 1, the idea to deal with a larger width is to run the algorithm nested within itself, where the first call goes through the width of the line while each recursive call would run the algorithm lengthwise. The mathematics behind the implementation was quite difficult to work with.
+I updated the save and load function so despite the way I run tkinter (not MVC, since it doesnt redraw anything), I realized that root = Tk() is just an instance of the class in tkinter, so I utilized a different instance of tkinter where the mainframe was continually updated to allow the user to give the image a name and load an image with a specific name. 
+
+I plan to implement a color wheel and to implement a sort of file explorer utilizing tkinter's fileio. If I have time, I will try an implement a modified version of Bresenham's algorithm to draw out ellipses.
