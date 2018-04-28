@@ -1,3 +1,4 @@
+from tkinter import filedialog
 from tkinter import *
 from math import *
 import string
@@ -176,7 +177,7 @@ def saveData(data, name):
     for i in range(len(data.board)):
         for j in range(len(data.board[0])):
             draw.point([(j,i)], fill = data.colors[data.board[i][j]])
-    filename = name + ".jpg"
+    filename = name# + ".jpg"
     image1.save(filename)
 
     '''def readFile(path):
@@ -186,8 +187,13 @@ def saveData(data, name):
 
 def save(data):
     master = Tk()
+    filename =  filedialog.asksaveasfilename(initialdir = "/",title = "Select file", defaultextension = "*.*", filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+    print(filename)
+    #filename.split("/")
     e = Entry(master)
     e.grid(row=0, column=1)
+    e.delete(0, END)
+    e.insert(0, filename)
     #e.focus_set()
     Label(master, text="SaveName").grid(row=0)
     #Label(master, text="Last Name").grid(row=1)
@@ -207,15 +213,16 @@ def save(data):
         return combined_func
     def saver(data, name = e.get()):
         saveData(data, name)
-
-    b = Button(master, text = "get", width = 10, command=callback)
-    b.grid(row=1)
+    #if filename == '':
+    #    filename = e.get()
+    #b = Button(master, text = "get", width = 10, command=callback)
+    #b.grid(row=1)
     #b.pack()
     c = Button(master, text = "Save", width = 10, command= lambda:combine_funcs(saveData(data, e.get()),master.destroy()))
-    c.grid(row=2)
+    c.grid(row=1)
     #c.pack()
     d = Button(master, text = "quit", width = 10, command=master.destroy)
-    d.grid(row=3)
+    d.grid(row=2)
     #d.pack()
     master.mainloop()
     #e= Entry(root, width = 50)
@@ -224,8 +231,12 @@ def save(data):
 
 def load(canvas, data):
     master = Tk()
+    filename = filedialog.askopenfilename(initialdir = '/', title = 'Select File', filetypes = (("jpeg files","*.jpg"),("all files", "*.*")))
+    print(filename)
     e = Entry(master)
     e.grid(row=0, column=1)
+    e.delete(0, END)
+    e.insert(0, filename)
     #e.focus_set()
     Label(master, text="SaveName").grid(row=0)
     #Label(master, text="Last Name").grid(row=1)
@@ -243,17 +254,17 @@ def load(canvas, data):
             for f in funcs:
                 f(*args, **kwargs)
         return combined_func
-    def saver(data, name = e.get()):
-        saveData(data, name)
+    #def saver(data, name = e.get()):
+    #    saveData(data, name)
 
-    b = Button(master, text = "get", width = 10, command=callback)
-    b.grid(row=1)
+    #b = Button(master, text = "get", width = 10, command=callback)
+    #b.grid(row=1)
     #b.pack()
     c = Button(master, text = "Load", width = 10, command= lambda:combine_funcs(loadData(canvas, data, e.get()), master.destroy())) #Doesnt destroy because load fails because of rgb problem. Easy fix just use rgbs instead of color names
-    c.grid(row=2)
+    c.grid(row=1)
     #c.pack()
     d = Button(master, text = "quit", width = 10, command=master.destroy)
-    d.grid(row=3)
+    d.grid(row=2)
     #d.pack()
     master.mainloop()
     #e= Entry(root, width = 50)
@@ -277,7 +288,7 @@ def loadData(canvas, data, name):
     #except:
     #    print("Invalid File")
     '''
-    filename = name + ".jpg"
+    filename = name
     try:
         image = Image.open(filename)
         photo = ImageTk.PhotoImage(image)
@@ -286,9 +297,10 @@ def loadData(canvas, data, name):
         pix = img.load()
     except:
         print("Error, file not Found")
+
     for i in range(len(data.board)):
-        for j in range(len(data.board[0])):
-            data.board[i][j] = data.colorCode.index(pix[j,i])
+            for j in range(len(data.board[0])):
+                data.board[i][j] = data.colorCode.index(pix[j,i])
         
     #if pix[j,i] in data.colorCode:
     '''minVal = 100
