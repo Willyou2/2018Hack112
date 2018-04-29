@@ -1,4 +1,5 @@
 from tkinter import filedialog
+from tkinter import colorchooser
 from tkinter import *
 from math import *
 import string
@@ -20,12 +21,12 @@ sys.setrecursionlimit(490000)
 def init(data):
     data.radius = 5 #radius of our eraser, which is 2 times the radius of the pen
     # data comes preset with width and height, from the run function
-    data.color = 0
+    data.color = (0,0,0)
     data.function = 0
     data.cursor = (data.width//2, data.height//2)
     data.pressed = False
     data.colors = ["black", "red", "blue", "green", "yellow", "purple", "brown", "white"]
-    data.functions = ["pointer", "pen", "fill", "erase", "thicker", "thinner", "save", "load", "clear", "rect", "line"]#, "testEntry"]
+    data.functions = ["pointer", "pen", "fill", "erase", "thicker", "thinner", "save", "load", "clear", "rect", "line", "edit color"]#, "testEntry"]
     data.rectWidth = data.width // 10
     data.rectHeight = data.height // len(data.functions)
     data.functHeight = data.height // len(data.functions)
@@ -33,11 +34,11 @@ def init(data):
     data.cellWidth = 10
     #IF FLOODFILL FAILS JUST ADJUST THE HEIGHT BACK TO REGULAR
     for i in range(data.height + 1): #+1 because the board pixels go from 0 to 500, so there needs to be a 500th cell
-        data.board += [[7]*((data.width-2*data.rectWidth+1))] #-data.rectWidth//4 because 2times the width of the rectangles. Change later when you configure it properly
-    data.temp = 0
+        data.board += [[(255,255,255)]*((data.width-2*data.rectWidth+1))] #-data.rectWidth//4 because 2times the width of the rectangles. Change later when you configure it properly
+    data.temp = (0,0,0)
     data.colorCode = [(0,0,0), (255,0,0), (0,0,255), (0,128,0), (255,255,0), (128,0,128), (165,42,42), (255,255,255)]#[(1,1,1), (170,39,31), (25,8,146), (36,107,31), (227,244,106), (95,24,100), (120,59,74), (255,255,255)] #Drawing red in PIL is different from generic red
     data.filename = "Example.jpg"
-    data.previousText = "Selected: " + data.functions[data.function].upper() + " " + "Color: " + data.colors[data.color].upper() + " " + str(data.radius//2)
+    #data.previousText = "Selected: " + data.functions[data.function].upper() + " " + "Color: " + data.colors[data.color].upper() + " " + str(data.radius//2)
     image = Image.open("Title.jpg")
     data.title = ImageTk.PhotoImage(image)
     data.count = 0
@@ -48,6 +49,11 @@ def init(data):
     data.line = [(0,0),(0,0),0] #third coordinate is the slope. The x0,y0 and xf,yf are the midpoints of the pixel. Slope calculated by midpoints
     data.shape = None #This will be set equal to some create_something depending on shape draw so it can be deleted and recreated. It's arbitrary since what it's set equal to will be deleted and recreated depending on your shape
     data.sWidth = 5 #Shape width
+
+def rgbtoTk(rgb):
+    a, b, c = int(rgb[0]), int(rgb[1]), int(rgb[2])
+    colorval = "#%02x%02x%02x" % (a,b,c)
+    return colorval
 
 def fillDot(data, row, col, center): #Center is a tuple that is constant
     #FIX THE ERROR IN THE ELIF = DATA.COLOR BY FIRST RUNNING A REUCURSIVE FUNC THAT FINDS IF THERES A WHITE SPOT STILL WITHIN RADIUS THEN SEND THAT INITIAL ROW/COL HERE BUT KEEP CENTER
@@ -86,7 +92,7 @@ def pen(data):
        # data.board[int(data.cursor[1])][in  t(data.cursor[0])] = data.color
 
 def erase(data):
-    data.color = 7
+    data.color = data.colorCode[7]
     x = data.cursor[1]
     y = data.cursor[0]
     #print(data.color)
@@ -172,12 +178,13 @@ def saveData(data, name):
         if i != len(data.board)-1:
             filename.write('|\n')
     filename.close()''' 
-    image1 = Image.new("RGB", (data.width, data.height), 'white')
+    image1 = Image.new("RGB", (data.width, data.height), 'white')#Image.new("RGB", (len(data.board[0]), len(data.board[1])), 'white')
     draw = ImageDraw.Draw(image1)
     for i in range(len(data.board)):
         for j in range(len(data.board[0])):
-            draw.point([(j,i)], fill = data.colors[data.board[i][j]])
+            draw.point([(j,i)], fill = data.board[i][j])
     filename = name# + ".jpg"
+    #print(filename)
     image1.save(filename)
 
     '''def readFile(path):
@@ -271,7 +278,8 @@ def load(canvas, data):
     #e.pack()
     #text = e.get()
 
-def loadData(canvas, data, name):
+
+def loadData(canvas, data, name): #LOAD PROBLEM: AFTER CLEARING BOARD CANT SEEM TO LOAD UNLESS RESTART APP
     '''
     filename = readFile("Example.txt")
     temp = []
@@ -297,10 +305,10 @@ def loadData(canvas, data, name):
         pix = img.load()
     except:
         print("Error, file not Found")
-
+    print(pix[50,50])
     for i in range(len(data.board)):
             for j in range(len(data.board[0])):
-                data.board[i][j] = data.colorCode.index(pix[j,i])
+                data.board[i][j] = pix[j,i]
         
     #if pix[j,i] in data.colorCode:
     '''minVal = 100
@@ -319,6 +327,15 @@ def loadData(canvas, data, name):
     saver = Button(root, text = "Save", width = 30, height = 30, bg = 'lightblue', command=save).place(x=data.width//2, y=data.height*2//3)'''
 
 #Increase stack size
+
+def chooseColor(data):
+    color = colorchooser.askcolor()[0]
+    color = list(color)
+    color[0] = int(color[0])
+    color[1] = int(color[1])
+    color[2] = int(color[2])
+    data.color = (color[0],color[1],color[2])
+
 def callWithLargeStack(f,*args):
     import sys
     import threading
@@ -349,7 +366,8 @@ def fill(canvas, data, x, y): #might be stack overflow because the edges are no 
         #data.board[x][y+1]=data.color
         #data.board[x][y-1]=data.color
         #canvas.create_rectangle(y-1,x-1,y+2,x+2,fill=data.colors[data.board[x][y]], width=0)
-        canvas.create_rectangle(y,x,y+1,x+1,fill=data.colors[data.board[x][y]], width=0)
+        color = rgbtoTk(data.color)
+        canvas.create_rectangle(y,x,y+1,x+1,fill=color, width=0)
         #recursively invoke flood fill on all surrounding cells:
         #if x > 0: 
 
@@ -370,11 +388,12 @@ def fill(canvas, data, x, y): #might be stack overflow because the edges are no 
 
 def clearBoard(canvas, data):
     data.board = []
-    for i in range(data.height):
-        data.board += [[7]*((data.width))]
+    for i in range(data.height + 1): #+1 because the board pixels go from 0 to 500, so there needs to be a 500th cell
+        data.board += [[(255,255,255)]*((data.width-2*data.rectWidth+1))]
     canvas.delete(ALL)
+    white = rgbtoTk((255,255,255))
     canvas.create_rectangle(0, 0, data.width, data.height,\
-                                fill='white', width=0)
+                                fill=white, width=0)
 
 def motion(event, data):
     data.cursor = (root.winfo_pointerx()-root.winfo_rootx(), \
@@ -409,7 +428,8 @@ def mouseReleased(event, data):
 # event.char holds the direct key that was pressed, "a", "3", "@", etc.
 # event.keysym holds special names for certain keys non-alphanumeric keys
 # for example, "space", "BackSpace", "parenleft", "exclam"
-def keyPressed(event, data):
+
+def keyPressed(event, data): #DEBUGGING
     if event.char == "a":
         print(data.board)
     if event.char == "b":
@@ -423,6 +443,11 @@ def keyPressed(event, data):
         print(event.x, event.y )
     if event.keysym == "Escape":
         quit()
+    if event.char == "2":
+        print(data.color, end = " ")
+        print(rgbtoTk(data.color))
+    if event.char == "3":
+        print(data.board[10][10])
     data.charText = event.char
     data.keysymText = event.keysym
 
@@ -450,11 +475,13 @@ def initPoint(canvas, data): #On mouse clicked
         data.line[0] = (x, y)
         data.line[1] = (x, y)
         data.line[2] = 0
-        data.shape = canvas.create_line(data.line[0], data.line[1], fill = data.colors[data.color])
+        color = rgbtoTk(data.color)
+        data.shape = canvas.create_line(data.line[0], data.line[1], fill = color)
 
 
 def drawShape(canvas, data): #On b1-motion
     #The following if elif else are to determine whether you're inside the box or not
+    color = rgbtoTk(data.color)
     if root.winfo_pointerx()-root.winfo_rootx() > len(data.board[0])-1:
         x = len(data.board[0]) - 1
     elif root.winfo_pointerx()-root.winfo_rootx() < 0:
@@ -470,14 +497,14 @@ def drawShape(canvas, data): #On b1-motion
     if data.functions[data.function] == "rect":
         data.rect[1] = (x,y)
         canvas.delete(data.shape) #Deletes previous shape, but wont keep deleting since this function only works if both B1 and motion
-        data.shape = canvas.create_rectangle(data.rect[0], data.rect[1], fill = '', width = data.sWidth, outline = data.colors[data.color])
+        data.shape = canvas.create_rectangle(data.rect[0], data.rect[1], fill = '', width = data.sWidth, outline = color)
     # Implement a line drawing function with arbitrary width. Idea to have thickness bigger than 1 is to simply do 2 way bresenham alg: first to draw a 1d line, then add more lines above it. However, to make sure the lines above are started at the right point, depending on the angled line, u have another line (the width of the line) that is orthogonal, so use bresenham to decide start points
     if data.functions[data.function] == "line":
         data.line[1] = (x,y)
         try:data.line[2] = (y-data.line[0][1])/(x-data.line[0][0])
         except: data.line[2] = (y-data.line[0][1]+1)/(x-data.line[0][0]+1)
         canvas.delete(data.shape)
-        data.shape = canvas.create_line(data.line[0], x, y, fill = data.colors[data.color], width = data.sWidth)
+        data.shape = canvas.create_line(data.line[0], x, y, fill = color, width = data.sWidth)
 
 def almostEqual(d1, d2, epsilon=10**-7):
     # note: use math.isclose() outside 15-112 with Python version 3.5 or later
@@ -572,6 +599,8 @@ def largeDrawWidth(canvas, data, x, y, xBase):
 
 
 def makeShape(canvas, data): #on mouse released
+    color = rgbtoTk(data.color)
+
     canvas.delete(data.shape)
     x = root.winfo_pointerx()-root.winfo_rootx()
     y = root.winfo_pointery()-root.winfo_rooty()
@@ -583,12 +612,12 @@ def makeShape(canvas, data): #on mouse released
             except: dy = (data.rect[1][1] - data.rect[0][1]+1)/abs(data.rect[1][1] - data.rect[0][1]+1)
             x = int(data.rect[0][0] + 10*dx)
             y = int(data.rect[0][1] + 10*dy)
-            canvas.create_rectangle(data.rect[0], x, y, fill = data.colors[data.color], width = data.sWidth, outline = data.colors[data.color]) #Choose some width for the rectangle
+            canvas.create_rectangle(data.rect[0], x, y, fill = color, width = data.sWidth, outline = color) #Choose some width for the rectangle
             for i in range(min(data.rect[0][1], y)-data.sWidth//2, max(data.rect[0][1], y)+data.sWidth//2+1):
                 for j in range(min(data.rect[0][0], x)-data.sWidth//2, max(data.rect[0][0], x)+data.sWidth//2+1):
                     data.board[i][j] = data.color
         else:
-            canvas.create_rectangle(data.rect[0], data.rect[1], fill = data.colors[data.color], width = data.sWidth, outline = data.colors[data.color])
+            canvas.create_rectangle(data.rect[0], data.rect[1], fill = color, width = data.sWidth, outline = color)
             for i in range(min(data.rect[0][1], data.rect[1][1]) - data.sWidth//2, max(data.rect[0][1], data.rect[1][1])+data.sWidth//2+1):
                 for j in range(min(data.rect[0][0], data.rect[1][0])- data.sWidth//2, max(data.rect[0][0], data.rect[1][0])+ data.sWidth//2+1):
                     data.board[i][j] = data.color
@@ -601,7 +630,7 @@ def makeShape(canvas, data): #on mouse released
         #print(data.line[2])
         #data.xComp = 1
         #data.yComp = -1/data.line[2]
-        canvas.create_line(data.line[0],data.line[1], fill = data.colors[data.color], width = data.sWidth)
+        canvas.create_line(data.line[0],data.line[1], fill = color, width = data.sWidth)
         #Makes the midpoints the values
         a = data.line[0][0] + 0.5
         b = data.line[0][1] + 0.5
@@ -630,6 +659,8 @@ def makeShape(canvas, data): #on mouse released
 # Also, the canvas will get cleared and this will be called again
 # constantly by the event loop.
 def redrawAll(canvas, data):
+    color = rgbtoTk(data.color)
+    white = rgbtoTk((255,255,255))
     #if data.functions[data.function] == "save":
     #    tkSimpleDialog.askstring(title, prompt [initialvalue])\
     if data.count == 0:
@@ -643,13 +674,13 @@ def redrawAll(canvas, data):
 
         x1,y1 = data.cursor[0]-data.radius, data.cursor[1]-data.radius
         x2,y2 = data.cursor[0]+data.radius, data.cursor[1]+data.radius
-        canvas.create_oval(x1,y1,x2,y2, fill=data.colors[7], width = 0)
+        canvas.create_oval(x1,y1,x2,y2, fill=white, width = 0)
 
     elif data.functions[data.function] == "pen" and data.pressed:
         pen(data)
         x1,y1 = data.cursor[0]-data.radius/2, data.cursor[1]-data.radius/2
         x2,y2 = data.cursor[0]+data.radius/2, data.cursor[1]+data.radius/2
-        canvas.create_oval(x1, y1, x2, y2, fill=data.colors[data.color], width = 0)
+        canvas.create_oval(x1, y1, x2, y2, fill=color, width = 0)
     #canvas.create_text(5, data.height, anchor = SW, text = data.previousText, fill = "white", width = 0)
     #canvas.create_text(5,data.height, anchor = SW, text = "Selected: " + data.functions[data.function].upper() + " " + "Color: " + data.colors[data.color].upper() + " " + str(data.radius//2), width = 0)
     #data.previousText = "Selected: " + data.functions[data.function].upper() + " " + "Color: " + data.colors[data.color].upper() + " " + str(data.radius//2)
@@ -671,18 +702,18 @@ def redrawAll(canvas, data):
 
                            
 def changeColor(color, data):
-    data.color = color
-    data.temp = color
+    data.color = data.colorCode[color]
+    data.temp = data.colorCode[color]
     
 def changeFunction(function, data):
     data.function = function
     #print(data.function)
-    if data.functions[data.function] == "pen":
-        data.color = data.temp
+    #if data.functions[data.function] == "pen":
+    #    data.color = data.temp
     
 def drawButtons(canvas, data):
-    data.colorButtons = [None]*len(data.colors)
-    for num in range(len(data.colors)):
+    data.colorButtons = [None]*len(data.colorCode)
+    for num in range(len(data.colorCode)):
         button1 = Button(canvas, text = data.colors[num],anchor = CENTER)
         button1.configure(width = data.rectWidth//8,height=data.rectHeight//15, 
                           activebackground = "#33B5E5")
@@ -714,6 +745,7 @@ def drawButtons(canvas, data):
     data.functionButtons[8].configure(command=lambda:clearBoard(canvas,data))
     data.functionButtons[9].configure(command=lambda:changeFunction(9,data))
     data.functionButtons[10].configure(command=lambda:changeFunction(10, data))
+    data.functionButtons[11].configure(command=lambda:chooseColor(data))
     #data.functionButtons[11].configure(command=lambda:testEntry(data))
     for num in range(len(data.functionButtons)):
         data.functionButtons[num].place(x=data.width-2*data.rectWidth,
@@ -828,4 +860,4 @@ def run(width=300, height=300):
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
-run(500,500)
+run(800, 800)
