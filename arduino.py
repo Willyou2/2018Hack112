@@ -714,7 +714,7 @@ def changeFunction(function, data):
 def drawButtons(canvas, data):
     data.colorButtons = [None]*len(data.colorCode)
     for num in range(len(data.colorCode)):
-        button1 = Button(canvas, text = data.colors[num],anchor = CENTER)
+        button1 = Button(canvas, text = data.colors[num], anchor = CENTER)
         button1.configure(width = data.rectWidth//8,height=data.rectHeight//15, 
                           activebackground = "#33B5E5")
         data.colorButtons[num]=(button1)
@@ -725,7 +725,8 @@ def drawButtons(canvas, data):
     data.colorButtons[4].configure(command=lambda:changeColor(4,data)) 
     data.colorButtons[5].configure(command=lambda:changeColor(5,data))
     data.colorButtons[6].configure(command=lambda:changeColor(6,data))
-    for num in range(len(data.colorButtons)-1):
+    data.colorButtons[7].configure(command=lambda:changeColor(7,data))
+    for num in range(len(data.colorButtons)):
         data.colorButtons[num].place(x=data.width-data.rectWidth,
                                      y=data.rectHeight*num)
     data.functionButtons = [None]*len(data.functions)
@@ -860,4 +861,4 @@ def run(width=300, height=300):
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
-run(800, 800)
+run(700, 700)
