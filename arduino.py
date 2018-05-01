@@ -6,6 +6,11 @@ import string
 from PIL import Image, ImageDraw, ImageTk
 #import tkSimpleDialog
 
+#Thanks to the contribution by William Cen --> https://github.com/Willyou2/2018Hack112/commits/master version: 3ab60e0
+#Thanks to Bresenham algorithm
+#Thanks to Matt Kong for Mentor help
+#
+
 ####################################
 # customize these functions
 ####################################
@@ -25,7 +30,7 @@ def init(data):
     data.function = 0
     data.cursor = (data.width//2, data.height//2)
     data.pressed = False
-    data.colors = ["black", "red", "blue", "green", "yellow", "purple", "brown", "white"]
+    data.colors = ["black", "red", "blue", "green", "yellow", "purple", "brown", "white", "Help"] #Careful, includes new functions
     data.functions = ["pointer", "pen", "fill", "erase", "thicker", "thinner", "save", "load", "clear", "rect", "line", "edit color"]#, "testEntry"]
     data.rectWidth = data.width // 10
     data.rectHeight = data.height // len(data.functions)
@@ -178,7 +183,8 @@ def saveData(data, name):
         if i != len(data.board)-1:
             filename.write('|\n')
     filename.close()''' 
-    image1 = Image.new("RGB", (data.width, data.height), 'white')#Image.new("RGB", (len(data.board[0]), len(data.board[1])), 'white')
+    image1 = Image.new("RGB", (len(data.board[0])-1, len(data.board)-1), 'white') #Maybe subtract 1 because goes from 0 to that point whereas board is different
+    #Image.new("RGB", (len(data.board[0]), len(data.board[1])), 'white')
     draw = ImageDraw.Draw(image1)
     for i in range(len(data.board)):
         for j in range(len(data.board[0])):
@@ -306,7 +312,7 @@ def loadData(canvas, data, name): #LOAD PROBLEM: AFTER CLEARING BOARD CANT SEEM 
     except:
         print("Error, file not Found")
     print(pix[50,50])
-    for i in range(len(data.board)):
+    for i in range(len(data.board)+1):
             for j in range(len(data.board[0])):
                 data.board[i][j] = pix[j,i]
         
@@ -505,6 +511,10 @@ def drawShape(canvas, data): #On b1-motion
         except: data.line[2] = (y-data.line[0][1]+1)/(x-data.line[0][0]+1)
         canvas.delete(data.shape)
         data.shape = canvas.create_line(data.line[0], x, y, fill = color, width = data.sWidth)
+
+def getHelp():
+    root2 = Tk()
+    
 
 def almostEqual(d1, d2, epsilon=10**-7):
     # note: use math.isclose() outside 15-112 with Python version 3.5 or later
@@ -712,8 +722,8 @@ def changeFunction(function, data):
     #    data.color = data.temp
     
 def drawButtons(canvas, data):
-    data.colorButtons = [None]*len(data.colorCode)
-    for num in range(len(data.colorCode)):
+    data.colorButtons = [None]*len(data.colors)
+    for num in range(len(data.colors)):
         button1 = Button(canvas, text = data.colors[num], anchor = CENTER)
         button1.configure(width = data.rectWidth//8,height=data.rectHeight//15, 
                           activebackground = "#33B5E5")
@@ -726,6 +736,7 @@ def drawButtons(canvas, data):
     data.colorButtons[5].configure(command=lambda:changeColor(5,data))
     data.colorButtons[6].configure(command=lambda:changeColor(6,data))
     data.colorButtons[7].configure(command=lambda:changeColor(7,data))
+    data.colorButtons[8].configure(command=lambda:getHelp())
     for num in range(len(data.colorButtons)):
         data.colorButtons[num].place(x=data.width-data.rectWidth,
                                      y=data.rectHeight*num)
