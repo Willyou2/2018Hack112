@@ -60,24 +60,24 @@ def rgbtoTk(rgb):
     colorval = "#%02x%02x%02x" % (a,b,c)
     return colorval
 
-def fillDot(data, row, col, center): #Center is a tuple that is constant
+def fillDot(data, row, col, center, color): #Center is a tuple that is constant
     #FIX THE ERROR IN THE ELIF = DATA.COLOR BY FIRST RUNNING A REUCURSIVE FUNC THAT FINDS IF THERES A WHITE SPOT STILL WITHIN RADIUS THEN SEND THAT INITIAL ROW/COL HERE BUT KEEP CENTER
     centerBox = (row+0.5, col + 0.5) #Finds center of current box
     dist = (centerBox[0]-center[0])**2 + (centerBox[1]-center[1])**2
     if row <= 0 or col <= 0 or row >= len(data.board)-1 or col >= len(data.board[row]):
         return
-    elif data.board[row][col] == data.color: #This is to prevent issues with crashing (which is due to infinite loop since each move goes around the circle infinitely) but it brings the issue of if you click a circle in another and the center immediately is surrounded by the color, it wont fill
+    elif data.board[row][col] == color: #This is to prevent issues with crashing (which is due to infinite loop since each move goes around the circle infinitely) but it brings the issue of if you click a circle in another and the center immediately is surrounded by the color, it wont fill
         return
     elif dist > data.radius**2 and data.function == 3:
         return
     elif dist > 0.25*data.radius**2 and data.function != 3: #0.25 because radius is radius of eraser
         return
     else:
-        data.board[row][col] = data.color
-        fillDot(data, row+1, col, center)
-        fillDot(data, row-1, col, center)
-        fillDot(data, row, col + 1, center)
-        fillDot(data, row, col - 1, center)
+        data.board[row][col] = color
+        fillDot(data, row+1, col, center, color)
+        fillDot(data, row-1, col, center, color)
+        fillDot(data, row, col + 1, center, color)
+        fillDot(data, row, col - 1, center, color)
 
 def findDiffColor(data, row, col, center): #Make sure this recursive function calls the fillDot whenever it finds a whitespot
     #I can tell this will be one hell of an AIDS inducing backtracking thing
@@ -92,12 +92,12 @@ def pen(data):
             for j in range(int(2*pi)):
                 if 0 <= int(y+i*sin(j)) < data.height and 0 <= int(x+i*cos(j)) < data.width:
                     data.board[int(y+i*sin(j))][int(x+i*cos(j))] = data.color'''
-        fillDot(data, row, col, (row+0.5, col+0.5))
+        fillDot(data, row, col, (row+0.5, col+0.5), data.color)
     #print(data.board)
        # data.board[int(data.cursor[1])][in  t(data.cursor[0])] = data.color
 
 def erase(data):
-    data.color = data.colorCode[7]
+    data.temp = data.colorCode[7]
     x = data.cursor[1]
     y = data.cursor[0]
     #print(data.color)
@@ -106,7 +106,7 @@ def erase(data):
             for j in range(int(2*pi)):
                 if 0 <= int(y+i*sin(j)) < data.height and 0 <= int(x+i*cos(j)) < data.width:
                     data.board[int(y+i*sin(j))][int(x+i*cos(j))] = data.color'''
-        fillDot(data, x, y, (x+0.5, y + 0.5))            
+        fillDot(data, x, y, (x+0.5, y + 0.5), data.temp)            
     #print(data.board)
     
 '''def fill(canvas, data, x, y):
@@ -512,9 +512,24 @@ def drawShape(canvas, data): #On b1-motion
         canvas.delete(data.shape)
         data.shape = canvas.create_line(data.line[0], x, y, fill = color, width = data.sWidth)
 
-def getHelp():
+def getHelp(data):
     root2 = Tk()
-    
+    #canvas2 = Canvas(root2, 500, 500)
+    #canvas.pack()
+    #canvas2.create
+
+    #################
+    ##### SETUP #####
+    #################
+    helpFrame = []
+    for i in range(len(data.functions)):
+        helpFrame += [(Text(root2, height=20, width=30), Text(root2, height=20, width=50), Scrollbar(root2, command=helpFrame[i][1].yview))] #First frame is picture frame, Second frame is instruction frame, Third is scrollbar
+        helpFrame[i][1].configure(yscrollcommand=helpFrame[i][2].set)
+        helpFrame[i][1].tag_configure('bold_italics', font=('Arial', 12, 'bold', 'italic'))
+        helpFrame[i][1].tag_configure('big', font=('Verdana', 20, 'bold'))
+        helpFrame[i][1].tag_configure('color', foreground='#476042', font=('Tempus Sans ITC', 12, 'bold'))
+
+
 
 def almostEqual(d1, d2, epsilon=10**-7):
     # note: use math.isclose() outside 15-112 with Python version 3.5 or later
