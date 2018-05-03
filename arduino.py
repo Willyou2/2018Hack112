@@ -4,12 +4,13 @@ from tkinter import *
 from math import *
 import string
 from PIL import Image, ImageDraw, ImageTk
+import os
 #import tkSimpleDialog
 
 #Thanks to the contribution by William Cen --> https://github.com/Willyou2/2018Hack112/commits/master version: 3ab60e0
 #Thanks to Bresenham algorithm
 #Thanks to Matt Kong for Mentor help
-#
+#Thanks to 112 for ReadFile Program
 
 ####################################
 # customize these functions
@@ -54,7 +55,14 @@ def init(data):
     data.line = [(0,0),(0,0),0] #third coordinate is the slope. The x0,y0 and xf,yf are the midpoints of the pixel. Slope calculated by midpoints
     data.shape = None #This will be set equal to some create_something depending on shape draw so it can be deleted and recreated. It's arbitrary since what it's set equal to will be deleted and recreated depending on your shape
     data.sWidth = 5 #Shape width
+    data.photo = None
 
+    ######
+    #Help#
+    ######
+    data.helpPage = 0
+    data.text1dim = (500,500)
+    data.text2dim = (20,50)
 def rgbtoTk(rgb):
     a, b, c = int(rgb[0]), int(rgb[1]), int(rgb[2])
     colorval = "#%02x%02x%02x" % (a,b,c)
@@ -183,7 +191,7 @@ def saveData(data, name):
         if i != len(data.board)-1:
             filename.write('|\n')
     filename.close()''' 
-    image1 = Image.new("RGB", (len(data.board[0])-1, len(data.board)-1), 'white') #Maybe subtract 1 because goes from 0 to that point whereas board is different
+    image1 = Image.new("RGB", (data.width+1, data.height+1), 'white') #Maybe subtract 1 because goes from 0 to that point whereas board is different
     #Image.new("RGB", (len(data.board[0]), len(data.board[1])), 'white')
     draw = ImageDraw.Draw(image1)
     for i in range(len(data.board)):
@@ -197,6 +205,11 @@ def saveData(data, name):
         with open(path, "rt") as f:
             return f.read()'''
 
+def sameColor(color1, color2):
+    if abs(color1[0] - color2[0]) > 20 or abs(color1[1] - color2[1]) > 20 or abs(color1[2] - color2[2]) > 20:
+        return False
+    else:
+        return True
 
 def save(data):
     master = Tk()
@@ -304,18 +317,20 @@ def loadData(canvas, data, name): #LOAD PROBLEM: AFTER CLEARING BOARD CANT SEEM 
     '''
     filename = name
     try:
-        image = Image.open(filename)
-        photo = ImageTk.PhotoImage(image)
-        canvas.create_image(0,0, anchor = NW, image = photo)
+        imageLoad = Image.open(filename)
+        #image.thumbnail((len(data.board[0]),len(data.board)), Image.ANTIALIAS)
+        data.photo = ImageTk.PhotoImage(imageLoad)
         img = Image.open(filename).convert("RGB")
         pix = img.load()
     except:
         print("Error, file not Found")
     print(pix[50,50])
-    for i in range(len(data.board)+1):
+    for i in range(len(data.board)):
             for j in range(len(data.board[0])):
                 data.board[i][j] = pix[j,i]
         
+    canvas.create_image(0,0, anchor = NW, image = data.photo)
+    #canvas.create_rectangle(0,0,50,50,fill="blue")
     #if pix[j,i] in data.colorCode:
     '''minVal = 100
     mini = (255,255,255)
@@ -361,11 +376,11 @@ def fill(canvas, data, x, y): #might be stack overflow because the edges are no 
     print(y,x)
     if x-1<=0 or y-1<=0 or x+1>=len(data.board)-1 or y+1>=len(data.board[0])-1: 
         return
-    elif data.color == data.colorFill:
+    elif sameColor(data.color,data.colorFill):
         return
-    elif data.board[x][y]!=data.colorFill:# or data.board[x-1][y-1]!= data.colorFill or data.board[x-1][y+1]!=data.colorFill or data.board[x+1][y-1]!=data.colorFill or data.board[x+1][y+1]!=data.colorFill:
+    elif not sameColor(data.board[x][y], data.colorFill):# or data.board[x-1][y-1]!= data.colorFill or data.board[x-1][y+1]!=data.colorFill or data.board[x+1][y-1]!=data.colorFill or data.board[x+1][y+1]!=data.colorFill:
         return
-    elif data.board[x][y] == data.colorFill: #Even though this is correct, it runs into error if you fill in a spot with the same color you want to fill it with ex: filling in an already black circle with black
+    elif sameColor(data.board[x][y], data.colorFill): #Even though this is correct, it runs into error if you fill in a spot with the same color you want to fill it with ex: filling in an already black circle with black
         data.board[x][y] = data.color
         #data.board[x+1][y]=data.color
         #data.board[x-1][y]=data.color
@@ -407,6 +422,7 @@ def motion(event, data):
     #print(data.cursor)
     
 def mousePressed(canvas, event, data):
+    print(data.board[event.y][event.x])
     if root.winfo_pointerx()-root.winfo_rootx()>data.width-2*data.rectWidth:#Keep not //8 because otherwise crashes
         return
     data.pressed = True
@@ -512,8 +528,12 @@ def drawShape(canvas, data): #On b1-motion
         canvas.delete(data.shape)
         data.shape = canvas.create_line(data.line[0], x, y, fill = color, width = data.sWidth)
 
+def readFile(path): 
+    with open(path, "rt") as f:
+        return f.read()
+
 def getHelp(data):
-    root2 = Tk()
+    root2 = Toplevel()
     #canvas2 = Canvas(root2, 500, 500)
     #canvas.pack()
     #canvas2.create
@@ -522,13 +542,53 @@ def getHelp(data):
     ##### SETUP #####
     #################
     helpFrame = []
+    photos = []
+    scroll = Scrollbar(root2)
+    dirHere = os.getcwd()
+    canvas2 = Canvas(root2, height=data.text1dim[0], width=data.text1dim[1])
     for i in range(len(data.functions)):
-        helpFrame += [(Text(root2, height=20, width=30), Text(root2, height=20, width=50), Scrollbar(root2, command=helpFrame[i][1].yview))] #First frame is picture frame, Second frame is instruction frame, Third is scrollbar
-        helpFrame[i][1].configure(yscrollcommand=helpFrame[i][2].set)
-        helpFrame[i][1].tag_configure('bold_italics', font=('Arial', 12, 'bold', 'italic'))
-        helpFrame[i][1].tag_configure('big', font=('Verdana', 20, 'bold'))
-        helpFrame[i][1].tag_configure('color', foreground='#476042', font=('Tempus Sans ITC', 12, 'bold'))
-
+        helpFrame += [Text(root2, height=data.text2dim[0], width=data.text2dim[1])] #First frame is picture frame, Second frame is instruction frame, Third is scrollbar
+        helpFrame[i].configure(yscrollcommand=scroll.set)
+        helpFrame[i].tag_configure('bold_italics', font=('Arial', 12, 'bold', 'italic'))
+        helpFrame[i].tag_configure('big', font=('Verdana', 20, 'bold'))
+        helpFrame[i].tag_configure('color', foreground='#476042', font=('Tempus Sans ITC', 12, 'bold'))
+        #picture = Image.open(dirHere + '\Help Pics\\'+str(i)+".png")
+        photo = Image.open(dirHere + '\Help Pics\\'+str(i)+".png")
+        photo.thumbnail((data.text1dim[1]-1, data.text1dim[0]-1), Image.ANTIALIAS)
+        photos += [ImageTk.PhotoImage(photo)]
+        #helpFrame[i][0].insert(END, '\n')
+        #helpFrame[i][0].create_rectangle(0,0, data.text1dim[0], data.text1dim[1], fill = 'white')
+        notes = readFile("./Help Pics/" + str(i) + ".txt")
+        helpFrame[i].insert(END, notes, 'color')
+    scroll.configure(command=helpFrame[data.helpPage].yview)
+    canvas2.pack(side=LEFT)
+    canvas2.create_rectangle(0,0,data.text1dim[1], data.text1dim[0], fill="white")
+    canvas2.create_image(0,0, image=photos[data.helpPage], anchor="nw")
+    #helpFrame[data.helpPage][0].pack(side=TOP)
+    #helpFrame[i][0].create_image(0, 0, image=photos[data.helpPage])
+    #helpFrame[data.helpPage][0].create_image(image=photo)
+    helpFrame[data.helpPage].pack(side=LEFT)
+    scroll.pack(side=RIGHT, fill=Y)
+    nextButton = Button(helpFrame[data.helpPage], text = "Next", width = 5, height=1, command=lambda:updateFrame(data, helpFrame, 1)).place(relx=0.95, rely=0.95, anchor=CENTER)
+    backButton = Button(helpFrame[data.helpPage], text = "Back", width = 5, height=1, command=lambda:updateFrame(data, helpFrame, -1)).place(relx=0.05, rely=0.95, anchor=CENTER) 
+    def updateFrame(data, helpFrame, pageChange):
+        if 0 <= data.helpPage + pageChange <= len(helpFrame)-1:
+            canvas2.delete(ALL)
+            #helpFrame[data.helpPage][0].pack_forget()
+            helpFrame[data.helpPage].pack_forget()
+            #helpFrame[data.helpPage][2].pack_forget()
+            data.helpPage += pageChange
+            scroll.configure(command=helpFrame[data.helpPage].yview)
+            #helpFrame[data.helpPage][0].pack(side=TOP)
+            helpFrame[data.helpPage].pack(side=LEFT)
+            nextButton = Button(helpFrame[data.helpPage], text = "Next", width = 5, height=1, command=lambda:updateFrame(data, helpFrame, 1)).place(relx=0.95, rely=0.95, anchor=CENTER)
+            backButton = Button(helpFrame[data.helpPage], text = "Back", width = 5, height=1, command=lambda:updateFrame(data, helpFrame, -1)).place(relx=0.05, rely=0.95, anchor=CENTER)
+            canvas2.create_image(0,0, image=photos[0],anchor="nw")
+            canvas2.create_image(0,0, image=photos[data.helpPage], anchor="nw")
+            #helpFrame[data.helpPage][0].pack(side=LEFT)
+            #helpFrame[data.helpPage][1].pack(side=)
+            #helpFrame[data.helpPage][2].pack_forget()
+    #root2.mainloop()
 
 
 def almostEqual(d1, d2, epsilon=10**-7):
@@ -751,7 +811,7 @@ def drawButtons(canvas, data):
     data.colorButtons[5].configure(command=lambda:changeColor(5,data))
     data.colorButtons[6].configure(command=lambda:changeColor(6,data))
     data.colorButtons[7].configure(command=lambda:changeColor(7,data))
-    data.colorButtons[8].configure(command=lambda:getHelp())
+    data.colorButtons[8].configure(command=lambda:getHelp(data))
     for num in range(len(data.colorButtons)):
         data.colorButtons[num].place(x=data.width-data.rectWidth,
                                      y=data.rectHeight*num)
