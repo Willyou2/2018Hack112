@@ -216,7 +216,7 @@ def sameColor(color1, color2):
 
 def save(data):
     master = Tk()
-    filename =  filedialog.asksaveasfilename(initialdir = "/",title = "Select file", defaultextension = "*.*", filetypes = (("png files","*.png"),("jpeg files","*.jpg"),("all files","*.*")))
+    filename =  filedialog.asksaveasfilename(initialdir = "/",title = "Select file", defaultextension = "*.*", filetypes = (("png files","*.png"),("jpeg files","*.jpg")))#,("all files","*.*")))
     print(filename)
     #filename.split("/")
     e = Entry(master)
@@ -330,8 +330,8 @@ def loadData(canvas, data, name): #LOAD PROBLEM: AFTER CLEARING BOARD CANT SEEM 
                 data.board[i][j] = pix[j,i]
         canvas.create_image(0,0, anchor = NW, image = data.photo)
     except:
-        openError()
-        #print("Error, file not Found")
+        #openError()
+        print("Error, file not Found")
     #print(pix[50,50])
     
         
@@ -355,7 +355,7 @@ def loadData(canvas, data, name): #LOAD PROBLEM: AFTER CLEARING BOARD CANT SEEM 
 
 #Increase stack size
 
-def openError():
+def openError(): #Ignore
     root3 = Tk()
     textBox = Text(root3, height="20", width="50")
     textBox.insert(END, "Error! File not found!")
@@ -478,8 +478,8 @@ def keyPressed(event, data): #DEBUGGING
     if event.char == "d":
         print(data.cursor[0], data.cursor[1], end = ' ')
         print(event.x, event.y )
-    if event.keysym == "Escape":
-        quit()
+    #if event.keysym == "Escape":
+    #    quit()
     if event.char == "2":
         print(data.color, end = " ")
         print(rgbtoTk(data.color))
@@ -593,6 +593,7 @@ def getHelp(data):
     scroll.pack(side=RIGHT, fill=Y)
     nextButton = Button(helpFrame[data.helpPage], text = "Next", width = 5, height=1, command=lambda:updateFrame(data, helpFrame, 1)).place(relx=0.95, rely=0.95, anchor=CENTER)
     backButton = Button(helpFrame[data.helpPage], text = "Back", width = 5, height=1, command=lambda:updateFrame(data, helpFrame, -1)).place(relx=0.05, rely=0.95, anchor=CENTER) 
+
     def updateFrame(data, helpFrame, pageChange):
         if 0 <= data.helpPage + pageChange <= len(helpFrame)-1:
             canvas2.delete(ALL)
@@ -839,6 +840,8 @@ def drawButtons(canvas, data):
     data.colorButtons[6].configure(command=lambda:changeColor(6,data))
     data.colorButtons[7].configure(command=lambda:changeColor(7,data))
     data.colorButtons[8].configure(command=lambda:getHelp(data))
+    data.colorButtons[8].configure(bg="YellowGreen")
+    #data.colorButtons[8].configure(font="Bold")
     for num in range(len(data.colorButtons)):
         data.colorButtons[num].place(x=data.width-data.rectWidth,
                                      y=data.rectHeight*num)
@@ -965,6 +968,9 @@ def run(width=300, height=300):
     data.textBox.pack(anchor=NW)
     timerFiredWrapper(canvas, data)
     drawButtons(canvas, data)
+    #titlePage = Image.open("C:\Users\William Cen\2018Hack112\Help Pics\Title.png")
+    #tkTitle = ImageTk.PhotoImage(titlePage)
+    loadData(canvas, data, "./Help Pics/PaintTitle.png")
     #print(data.function)
     # and launch the app
     '''name = StringVar()
@@ -975,6 +981,6 @@ def run(width=300, height=300):
     b = Button(root,text='okay',command=printtext)
     b.pack(side='bottom')'''
     root.mainloop()  # blocks until window is closed
-    print("bye!")
+    print("Finished")
 
 run(700, 700)
