@@ -1,1 +1,2 @@
-Discusses Load
+Load
+The load tool works similarly to the save tool. Clicking the load button will redirect you to a file browser to select the desired file. When the browser closes, you are left with a small window that allows you to change your file location or input your own. When you are finished, click the load button to load the image.

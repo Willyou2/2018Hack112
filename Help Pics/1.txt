@@ -1,1 +1,2 @@
-Discusses Pen
+Pen
+The pen tool is very useful for a variety of purposes. It allows the user to perform freehand drawing. Simply click the tool and hold down left click to start drawing. 

@@ -1,1 +1,2 @@
-Discusses fill
+Fill
+The fill tool is quite useful and has great potential. It allows the user to click anywhere and fill in the enclosed area with the selected color. However, note that this function is still in Beta, so please refrain from filling in a large area.

@@ -1,1 +1,2 @@
-Discuss Clear
+Clear
+The clear tool is very useful if you ever want to restart with a blank template. Clicking the clear button will wipe the entire canvas, so you can restart.

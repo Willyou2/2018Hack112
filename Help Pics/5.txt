@@ -1,1 +1,2 @@
-Discusses Thinner
+Thinner
+The thinner tool is similar to the thicker tool. It works by clicking on it, where each click will decrease the thickness of the pen and eraser.

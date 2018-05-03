@@ -1,1 +1,2 @@
-Discusses Erase
+Eraser
+The erase tool is an important tool for any sort of error correction or artistic license, whatever it may be. By clicking on the tool, simply click and drag to erase.

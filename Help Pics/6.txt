@@ -1,1 +1,2 @@
-Discusses Save
+Save
+The save tool is a nifty tool for saving your artwork. By clicking save, you are redirected to a file browser, where you can choose where to save and what name to give. When the window is closed, you will have a smaller box that contains the destination. The text is editable, so feel free to change it to wherever. After you are done, click the save button.

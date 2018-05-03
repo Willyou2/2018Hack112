@@ -1,1 +1,2 @@
-Discussion on Pointer
+Pointer
+The pointer is a function that is simply useful for moving the mouse around and detecting the color and pixel coordinate you are at. Click the pointer button to change to pointer mode.

@@ -1,1 +1,2 @@
-Discusses Colors
+Colors
+The color tool comes with a variety of options. If you need a quick choice of a popular color such as red, simply click on the red button. If you want a more complex color, clicking on the edit color button will give you access to a color spectrum where you can freely choose a color.

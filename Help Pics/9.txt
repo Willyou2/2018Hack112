@@ -1,1 +1,2 @@
-Discusses Rectangle
+Rectangle
+The rectangle function is a useful tool for drawing rectangles of various shapes and sizes. Simply click the tool. Then click and drag your mouse to draw out the rectangle from where you started the dragging. By letting go, the rectangle will be formed, filled with the color you have chosen. Note that drawing a rectangle too small will default the rectangle to a particular size.

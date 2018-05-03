@@ -1,1 +1,2 @@
-Discusses Thicker
+Thicker 
+The thicker tool is a different style of tool. On each click, it will increase the thickness of the pen and eraser. 

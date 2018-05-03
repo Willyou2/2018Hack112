@@ -8,9 +8,11 @@ import os
 #import tkSimpleDialog
 
 #Thanks to the contribution by William Cen --> https://github.com/Willyou2/2018Hack112/commits/master version: 3ab60e0
+#Thanks to the contribution by Shawn Liu from the same link above
 #Thanks to Bresenham algorithm
 #Thanks to Matt Kong for Mentor help
 #Thanks to 112 for ReadFile Program
+#Thanks to https://stackoverflow.com/questions/13865009/have-multiple-commands-when-button-is-pressed For combine_funcs program
 
 ####################################
 # customize these functions
@@ -56,6 +58,7 @@ def init(data):
     data.shape = None #This will be set equal to some create_something depending on shape draw so it can be deleted and recreated. It's arbitrary since what it's set equal to will be deleted and recreated depending on your shape
     data.sWidth = 5 #Shape width
     data.photo = None
+
 
     ######
     #Help#
@@ -206,14 +209,14 @@ def saveData(data, name):
             return f.read()'''
 
 def sameColor(color1, color2):
-    if abs(color1[0] - color2[0]) > 20 or abs(color1[1] - color2[1]) > 20 or abs(color1[2] - color2[2]) > 20:
+    if abs(color1[0] - color2[0]) > 50 or abs(color1[1] - color2[1]) > 50 or abs(color1[2] - color2[2]) > 50:
         return False
     else:
         return True
 
 def save(data):
     master = Tk()
-    filename =  filedialog.asksaveasfilename(initialdir = "/",title = "Select file", defaultextension = "*.*", filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+    filename =  filedialog.asksaveasfilename(initialdir = "/",title = "Select file", defaultextension = "*.*", filetypes = (("png files","*.png"),("jpeg files","*.jpg"),("all files","*.*")))
     print(filename)
     #filename.split("/")
     e = Entry(master)
@@ -257,7 +260,7 @@ def save(data):
 
 def load(canvas, data):
     master = Tk()
-    filename = filedialog.askopenfilename(initialdir = '/', title = 'Select File', filetypes = (("jpeg files","*.jpg"),("all files", "*.*")))
+    filename = filedialog.askopenfilename(initialdir = '/', title = 'Select File', filetypes = (("png files","*.png"),("jpeg files","*.jpg"),("all files","*.*")))
     print(filename)
     e = Entry(master)
     e.grid(row=0, column=1)
@@ -322,14 +325,17 @@ def loadData(canvas, data, name): #LOAD PROBLEM: AFTER CLEARING BOARD CANT SEEM 
         data.photo = ImageTk.PhotoImage(imageLoad)
         img = Image.open(filename).convert("RGB")
         pix = img.load()
-    except:
-        print("Error, file not Found")
-    print(pix[50,50])
-    for i in range(len(data.board)):
+        for i in range(len(data.board)):
             for j in range(len(data.board[0])):
                 data.board[i][j] = pix[j,i]
+        canvas.create_image(0,0, anchor = NW, image = data.photo)
+    except:
+        openError()
+        #print("Error, file not Found")
+    #print(pix[50,50])
+    
         
-    canvas.create_image(0,0, anchor = NW, image = data.photo)
+    
     #canvas.create_rectangle(0,0,50,50,fill="blue")
     #if pix[j,i] in data.colorCode:
     '''minVal = 100
@@ -348,6 +354,15 @@ def loadData(canvas, data, name): #LOAD PROBLEM: AFTER CLEARING BOARD CANT SEEM 
     saver = Button(root, text = "Save", width = 30, height = 30, bg = 'lightblue', command=save).place(x=data.width//2, y=data.height*2//3)'''
 
 #Increase stack size
+
+def openError():
+    root3 = Tk()
+    textBox = Text(root3, height="20", width="50")
+    textBox.insert(END, "Error! File not found!")
+    textBox.pack(side=TOP)
+    closeButton = Button(root3, text = "Close", command=root3.destroy)
+    closeButton.place(relx=0.5,rely=0.9)
+    root3.mainloop()
 
 def chooseColor(data):
     color = colorchooser.askcolor()[0]
@@ -422,7 +437,7 @@ def motion(event, data):
     #print(data.cursor)
     
 def mousePressed(canvas, event, data):
-    print(data.board[event.y][event.x])
+    #print(data.board[event.y][event.x])
     if root.winfo_pointerx()-root.winfo_rootx()>data.width-2*data.rectWidth:#Keep not //8 because otherwise crashes
         return
     data.pressed = True
@@ -559,7 +574,13 @@ def getHelp(data):
         #helpFrame[i][0].insert(END, '\n')
         #helpFrame[i][0].create_rectangle(0,0, data.text1dim[0], data.text1dim[1], fill = 'white')
         notes = readFile("./Help Pics/" + str(i) + ".txt")
-        helpFrame[i].insert(END, notes, 'color')
+        title = notes.splitlines()[0]
+        helpFrame[i].insert(END,'\n' + title + '\n', 'big')
+        desc = ''.join(notes.splitlines()[1:])
+        helpFrame[i].insert(END, desc, 'color')
+    photo = Image.open(dirHere + '\Help Pics\\12.png')
+    photo.thumbnail((data.text1dim[1]-1, data.text1dim[0]-1), Image.ANTIALIAS)
+    photos += [ImageTk.PhotoImage(photo)]
     scroll.configure(command=helpFrame[data.helpPage].yview)
     canvas2.pack(side=LEFT)
     canvas2.create_rectangle(0,0,data.text1dim[1], data.text1dim[0], fill="white")
@@ -567,6 +588,7 @@ def getHelp(data):
     #helpFrame[data.helpPage][0].pack(side=TOP)
     #helpFrame[i][0].create_image(0, 0, image=photos[data.helpPage])
     #helpFrame[data.helpPage][0].create_image(image=photo)
+    helpFrame[data.helpPage].configure(state="disabled")
     helpFrame[data.helpPage].pack(side=LEFT)
     scroll.pack(side=RIGHT, fill=Y)
     nextButton = Button(helpFrame[data.helpPage], text = "Next", width = 5, height=1, command=lambda:updateFrame(data, helpFrame, 1)).place(relx=0.95, rely=0.95, anchor=CENTER)
@@ -580,10 +602,11 @@ def getHelp(data):
             data.helpPage += pageChange
             scroll.configure(command=helpFrame[data.helpPage].yview)
             #helpFrame[data.helpPage][0].pack(side=TOP)
+            helpFrame[data.helpPage].configure(state="disabled")
             helpFrame[data.helpPage].pack(side=LEFT)
             nextButton = Button(helpFrame[data.helpPage], text = "Next", width = 5, height=1, command=lambda:updateFrame(data, helpFrame, 1)).place(relx=0.95, rely=0.95, anchor=CENTER)
             backButton = Button(helpFrame[data.helpPage], text = "Back", width = 5, height=1, command=lambda:updateFrame(data, helpFrame, -1)).place(relx=0.05, rely=0.95, anchor=CENTER)
-            canvas2.create_image(0,0, image=photos[0],anchor="nw")
+            canvas2.create_image(0,0, image=photos[-1],anchor="nw")
             canvas2.create_image(0,0, image=photos[data.helpPage], anchor="nw")
             #helpFrame[data.helpPage][0].pack(side=LEFT)
             #helpFrame[data.helpPage][1].pack(side=)
@@ -743,6 +766,10 @@ def makeShape(canvas, data): #on mouse released
 # Main difference: the data struct contains helpful information to assist drawing
 # Also, the canvas will get cleared and this will be called again
 # constantly by the event loop.
+def displayCoord(data):
+    data.textBox.delete("1.0",END)
+    data.textBox.insert("1.0", str(data.cursor[0]))
+    data.textBox.insert(END, "," + str(data.cursor[1]))
 def redrawAll(canvas, data):
     color = rgbtoTk(data.color)
     white = rgbtoTk((255,255,255))
@@ -913,7 +940,7 @@ def run(width=300, height=300):
     init(data)
     # create the root and the canvas
     canvas = Canvas(root, width=data.width, height=data.height)
-    canvas.pack()
+    canvas.pack(anchor=NW)
     # set up events
     #frame = Frame(root, width = data.width, height = data.height)
     root.bind("<Button-1>", lambda event:
@@ -930,9 +957,12 @@ def run(width=300, height=300):
                             drawShapeWrapper(canvas, data))
     canvas.bind('<ButtonRelease-1>', lambda event:
                             makeShapeWrapper(canvas, data))
+    canvas.bind('<Motion>', lambda event: displayCoord(data))
     #frame.pack()
     canvas.create_rectangle(0, 0, data.width, data.height,
                                 fill='white', width=0)
+    data.textBox = Text(root, width=7,height=1)
+    data.textBox.pack(anchor=NW)
     timerFiredWrapper(canvas, data)
     drawButtons(canvas, data)
     #print(data.function)

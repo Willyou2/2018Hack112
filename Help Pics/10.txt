@@ -1,1 +1,2 @@
-Discusses Line
+Line
+Similar to the rectangle tool, the line tool allows the user to draw lines. By clicking on the tool, you can click and drag to draw out a line from where you started dragging. After you release the left mouse button, a line will be drawn with the desired color.
