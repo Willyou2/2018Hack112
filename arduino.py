@@ -47,8 +47,8 @@ def init(data):
     data.colorCode = [(0,0,0), (255,0,0), (0,0,255), (0,128,0), (255,255,0), (128,0,128), (165,42,42), (255,255,255)]#[(1,1,1), (170,39,31), (25,8,146), (36,107,31), (227,244,106), (95,24,100), (120,59,74), (255,255,255)] #Drawing red in PIL is different from generic red
     data.filename = "Example.jpg"
     #data.previousText = "Selected: " + data.functions[data.function].upper() + " " + "Color: " + data.colors[data.color].upper() + " " + str(data.radius//2)
-    image = Image.open("Title.jpg")
-    data.title = ImageTk.PhotoImage(image)
+    #image = Image.open("Title.jpg")
+    #data.title = ImageTk.PhotoImage(image)
     data.count = 0
     data.colorFill = data.color #If you select a box to fill, the color of the pixel is what it will check for your box to be equal to
     ####### Shape Parameters #######

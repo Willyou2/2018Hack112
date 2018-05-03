@@ -30,3 +30,14 @@ I also implemented a line drawing function, where I made use of an algorithm I l
 I updated the save and load function so despite the way I run tkinter (not MVC, since it doesnt redraw anything), I realized that root = Tk() is just an instance of the class in tkinter, so I utilized a different instance of tkinter where the mainframe was continually updated to allow the user to give the image a name and load an image with a specific name. 
 
 I plan to implement a color wheel and to implement a sort of file explorer utilizing tkinter's fileio. If I have time, I will try an implement a modified version of Bresenham's algorithm to draw out ellipses.
+
+
+TP3 Update
+Was a very difficult journey. Had to rework entire color registration process from a list of colors to the basic colors in rgb format and a color selection from Tkinter's built in module. By utilizing the rgb tuple, I recreated the board. I had some filling issues with loading pictures I drew, where it would only fill in small areas. I suspected this could be due to some blending algorithm, and I was almost right: python's PIL module, when loading images, does a luminosity approximation on the image to approximate pixel rgb values, which explains why my debugging gave me 5,5,5 sometimes instead of 0,0,0. By experimentation and practical values, I determined that at most, a person's vision would not be able to easily tell the difference as long as each rgb value lay less than 50 from the color desired. 
+In addition to a color fix, I worked on my load function, which I learned that saving images with certain sizes actually does not properly cover the entire board but instead has that many pixels (aka 50 pixels is 0 to 49). 
+I added a functionality to produce a help menu and title page. The help menu allows the user to use the next and back buttons to navigate through the slides to learn about each functionality. I also added a coordinate display at the bottom so the user could gather information about what he/she is looking at. 
+The last functionality I added was the resizing of images. An image loaded will always be resized to fit in the paint program, so you can load images that weren't created by the program as well and fiddle around. This was quite exciting, as one of the important features is that a combination of approximation and resizing allows me to perform fill functions on these loaded images without worrying too much about precision of color to get the general fill, while programs like ms Paint are too precise.
+The one bug I could not fix because the constraints of python's allocation of memory is the stack overflow issue from floodfill. When filling large areas, the computer simply cannot allocate enough memory to run so many recursive calls. Python does not allocate memory as efficiently as C does, leading more memory to be wasted quickly. 
+
+Youtube Video:
+https://youtu.be/Y1AXyqudt0M
