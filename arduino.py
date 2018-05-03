@@ -321,12 +321,15 @@ def loadData(canvas, data, name): #LOAD PROBLEM: AFTER CLEARING BOARD CANT SEEM 
     filename = name
     try:
         imageLoad = Image.open(filename)
-        #image.thumbnail((len(data.board[0]),len(data.board)), Image.ANTIALIAS)
+        imageLoad.thumbnail((len(data.board[0]),len(data.board)), Image.ANTIALIAS)
         data.photo = ImageTk.PhotoImage(imageLoad)
-        img = Image.open(filename).convert("RGB")
+        img = Image.open(filename)
+        img.thumbnail((len(data.board[0]),len(data.board)), Image.ANTIALIAS)
+        width, height = img.size
+        img.convert("RGB")
         pix = img.load()
-        for i in range(len(data.board)):
-            for j in range(len(data.board[0])):
+        for i in range(height):
+            for j in range(width):
                 data.board[i][j] = pix[j,i]
         canvas.create_image(0,0, anchor = NW, image = data.photo)
     except:
